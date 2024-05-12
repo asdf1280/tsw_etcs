@@ -1,0 +1,89 @@
+[
+    {
+        "name": "NA_ScaleUpPlanning",
+        "imagePath": "NA_03",
+        "disabledImagePath": "NA_05",
+        "cells": [12, 12]
+    },
+    {
+        "name": "NA_ScaleDownPlanning",
+        "imagePath": "NA_04",
+        "disabledImagePath": "NA_06",
+        "cells": [12, 12]
+    },
+    {
+        "name": "NA_CloseWindow",
+        "imagePath": "NA_11",
+        "disabledImagePath": "NA_12",
+        "cells": [32, 32]
+    },
+    {
+        "name": "NA_ScrollUp",
+        "imagePath": "NA_13",
+        "disabledImagePath": "NA_15",
+        "cells": [32, 32]
+    },
+    {
+        "name": "NA_ScrollDown",
+        "imagePath": "NA_14",
+        "disabledImagePath": "NA_16",
+        "cells": [32, 32]
+    },
+    {
+        "name": "NA_Next",
+        "imagePath": "NA_17",
+        "disabledImagePath": "NA_18.2",
+        "cells": [32, 32]
+    },
+    {
+        "name": "NA_Previous",
+        "imagePath": "NA_18",
+        "disabledImagePath": "NA_19",
+        "cells": [32, 32]
+    },
+    {
+        "name": "NA_Delete",
+        "imagePath": "NA_21",
+        "cells": [32, 32]
+    },
+    {
+        "name": "NA_More",
+        "imagePath": "NA_23",
+        "cells": [32, 32]
+    },
+    {
+        "name": "LE_0",
+        "imagePath": "LE_01",
+        "cells": [52, 21]
+    },
+    {
+        "name": "LE_0_Ack",
+        "imagePath": "LE_07",
+        "cells": [52, 21]
+    },
+    {
+        "name": "LE_0_Soon",
+        "imagePath": "LE_06",
+        "cells": [52, 21]
+    },
+    {
+        "name": "LE_1",
+        "imagePath": "LE_03",
+        "cells": [52, 21]
+    },
+    {
+        "name": "LE_1_Soon",
+        "imagePath": "LE_10",
+        "cells": [52, 21]
+    },
+    {
+        "name": "LE_2",
+        "imagePath": "LE_04",
+        "cells": [52, 21]
+    },
+    {
+        "name": "LE_2_Soon",
+        "imagePath": "LE_12",
+        "cells": [52, 21]
+    }
+]

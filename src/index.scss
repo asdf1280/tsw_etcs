@@ -1,0 +1,110 @@
+@font-face {
+    font-family: 'Verdana';
+    font-style: normal;
+    font-weight: normal;
+    src: url("./font/verdana.ttf") format('ttf');
+}
+
+@font-face {
+    font-family: 'Verdana';
+    font-style: normal;
+    font-weight: bold;
+    src: url("./font/verdanab.ttf") format('ttf');
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--e-black);
+    color: var(--e-white);
+
+    position: relative;
+    width: 100dvw;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+
+    font-family: 'Verdana', sans-serif;
+    font-size: calc(12 * var(--cell));
+    line-height: 100%;
+
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
+:root {
+    --e-white: rgb(255, 255, 255);
+    --e-black: rgb(0, 0, 0);
+    --e-grey: rgb(195, 195, 195);
+    --e-mediumGrey: rgb(150, 150, 150);
+    --e-darkGrey: rgb(85, 85, 85);
+    --e-darkBlue: rgb(3, 17, 34);
+    --e-shadow: rgb(8, 24, 57);
+    --e-yellow: rgb(223, 223, 0);
+    --e-orange: rgb(234, 145, 0);
+    --e-red: rgb(191, 0, 2);
+    --e-paspDark: rgb(33, 49, 74);
+    --e-paspLight: rgb(41, 74, 107);
+    // NTC colors
+    --e-blue: rgb(0, 0, 234);
+    --e-green: rgb(0, 234, 0);
+    --e-lightRed: rgb(255, 96, 96);
+    --e-lightGreen: rgb(96, 255, 96);
+}
+
+#dmi {
+    position: relative;
+    background-color: var(--e-darkBlue);
+}
+
+.border {
+    position: relative;
+    border-style: solid;
+    --border-width: calc(1 * var(--cell));
+
+    > * {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.border-top-left {
+    border-width: var(--border-width) 0 0 var(--border-width);
+}
+
+.border-bottom-right {
+    border-width: 0 var(--border-width) var(--border-width) 0;
+}
+
+@keyframes flash {
+
+    0%,
+    100% {}
+
+    50% {
+        border-color: var(--e-yellow);
+    }
+}
+
+.border-flash {
+    animation: flash 0.5s steps(1, end) infinite;
+}
+
+.e-button {
+    user-select: none;
+    cursor: pointer;
+    display: inline-block;
+
+    &.disabled {
+        cursor: not-allowed;
+        color: var(--e-darkGrey)
+    }
+}
