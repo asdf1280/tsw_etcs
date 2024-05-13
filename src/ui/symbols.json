@@ -52,6 +52,26 @@
         "cells": [32, 32]
     },
     {
+        "name": "SE_Brightness",
+        "imagePath": "SE_01",
+        "cells": [32, 32]
+    },
+    {
+        "name": "SE_Volume",
+        "imagePath": "SE_02",
+        "cells": [32, 32]
+    },
+    {
+        "name": "SE_Language",
+        "imagePath": "SE_03",
+        "cells": [32, 32]
+    },
+    {
+        "name": "SE_Entry",
+        "imagePath": "SE_04",
+        "cells": [32, 32]
+    },
+    {
         "name": "LE_0",
         "imagePath": "LE_01",
         "cells": [52, 21]
@@ -85,5 +105,15 @@
         "name": "LE_2_Soon",
         "imagePath": "LE_12",
         "cells": [52, 21]
+    },
+    {
+        "name": "LE_2_Soon",
+        "imagePath": "LE_12",
+        "cells": [52, 21]
+    },
+    {
+        "name": "MO_StandBy",
+        "imagePath": "MO_13",
+        "cells": [32, 32]
     }
 ]

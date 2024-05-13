@@ -20,4 +20,6 @@ export const Symbols: Record<SymbolName, Symbol> = {};
 let data = JSON.parse(require("./symbols.json") as string) as Symbol[];
 data.forEach((symbol) => {
     Symbols[symbol.name] = symbol;
+    symbol.imagePath = require("../symbol/" + symbol.imagePath + ".png");
+    if (symbol.disabledImagePath) symbol.disabledImagePath = require("../symbol/" + symbol.disabledImagePath + ".png");
 });

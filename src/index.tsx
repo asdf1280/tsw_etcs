@@ -3,8 +3,8 @@ import "./index.scss";
 {
     let dmi = document.getElementById('dmi')!;
     function adjustSize() {
-        let w = window.innerWidth;
-        let h = window.innerHeight;
+        let w = document.body.offsetWidth;
+        let h = document.body.offsetHeight;
         let ratio = w / h;
         if (ratio > 4 / 3) {
             dmi.style.width = h * 4 / 3 + 'px';

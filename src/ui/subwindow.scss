@@ -1,0 +1,39 @@
+.subwindow {
+    position: absolute;
+
+    background-color: var(--e-darkBlue);
+
+    >*{
+        position: absolute;
+    }
+
+    >.title {
+        text-align: left;
+        padding-left: calc(3 * var(--cell));
+        left: calc(0 * var(--cell));
+        top: calc(0 * var(--cell));
+        width: calc(306 * var(--cell));
+        height: calc(24 * var(--cell));
+
+        background-color: var(--e-black);
+    }
+
+    >.e-button {
+        width: calc(153 * var(--cell));
+        height: calc(50 * var(--cell));
+    }
+
+    >.e-button.close {
+        left: calc(0 * var(--cell));
+        top: calc(400 * var(--cell));
+        width: calc(82 * var(--cell));
+        height: calc(50 * var(--cell));
+    }
+}
+
+.subwindow-menu {
+    left: calc(334 * var(--cell));
+    top: calc(15 * var(--cell));
+    width: calc(306 * var(--cell));
+    height: calc(450 * var(--cell));
+}

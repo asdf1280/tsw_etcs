@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*.ts", "index.d.ts", "src/index.tsx"],
+  "include": ["src/**/*.ts", "index.d.ts", "src/index.tsx", "src/ui/subwindow.tsx", "src/ui/dmiFunc.ts"],
   "compilerOptions": {
     "jsx": "react",
     /* Visit https://aka.ms/tsconfig.json to read more about this file */

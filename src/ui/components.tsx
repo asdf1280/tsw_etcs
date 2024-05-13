@@ -1,9 +1,9 @@
-import React, { CSSProperties, forwardRef, useEffect } from 'react';
+import React, { CSSProperties, ReactNode, forwardRef, useEffect } from 'react';
 import { E_COLORS } from './constants';
-import { Audio } from './global';
+import { Audio, Symbols } from './global';
 
 export interface EButtonProps {
-    text: string | null;
+    text: ReactNode | null;
     symbol: string | null;
 
     enabled: boolean;
@@ -12,10 +12,23 @@ export interface EButtonProps {
     onClick?: () => void;
 }
 
-export const EButton = ({ text, symbol, enabled, type, className, onClick }: EButtonProps & { className?: string }) => {
+export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
     // Symbol not implemented yet
     let classNameV = "e-button" + (className ? " " + className : "");
     if (!enabled) classNameV += " disabled";
+
+    let styleV = style ? style : {};
+    if(enabled) {
+        if(type === "DELAY") {
+            styleV.cursor = "progress";
+        } else if(type === "DOWNREPEAT") {
+            styleV.cursor = "grab";
+        } else if(type === "DOWN") {
+            styleV.cursor = "pointer";
+        } else {
+            styleV.cursor = "pointer";
+        }
+    }
 
     // button ref
     let buttonRef = React.createRef<HTMLDivElement>();
@@ -70,6 +83,7 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick }: EBu
             };
             onMouseUp = () => {
                 virtualPressed = false;
+                clearTimeout(timeout);
             };
             onMouseLeave = () => {
                 virtualPressed = false;
@@ -171,27 +185,72 @@ button activation shall be considered by the onboard
 
     // For text buttons, we support grey text when disabled. For symbol buttons, it will display disabled version if available.
 
-    return <ShadowBorder leftTop={pressed ? "transparent" : E_COLORS.black} rightBottom={pressed ? "transparent" : E_COLORS.shadow} className={classNameV} ref={buttonRef}>
-        <ShadowBorder leftTop={pressed ? "transparent" : E_COLORS.shadow} rightBottom={pressed ? "transparent" : E_COLORS.black}>
-            {text}
+    let content: ReactNode;
+    let innerStyle: any = {};
+    if (symbol && symbol in Symbols) {
+        let symbolData = Symbols[symbol];
+        content = <img src={enabled ? symbolData.imagePath : (symbolData.disabledImagePath ?? symbolData.imagePath)} alt={symbolData.name} style={{
+            width: symbolData.cells[0] * window.cell,
+            height: symbolData.cells[1] * window.cell,
+        }} />;
+
+        innerStyle = {
+            width: "100%", height: "100%", position: "relative",
+            display: "flex", justifyContent: "center", alignItems: "center"
+        } satisfies CSSProperties;
+    } else {
+        content = <div style={{ display: "inline-block" }}>{text}</div>;
+
+        innerStyle = {
+            width: "100%", height: "100%", position: "relative",
+            display: "flex", justifyContent: "center", alignItems: "center"
+        } satisfies CSSProperties;
+    }
+
+    return <ShadowBorder leftTop={pressed ? "transparent" : E_COLORS.black} rightBottom={pressed ? "transparent" : E_COLORS.shadow} className={classNameV} ref={buttonRef} style={styleV}>
+        <ShadowBorder leftTop={pressed ? "transparent" : E_COLORS.shadow} rightBottom={pressed ? "transparent" : E_COLORS.black} innerStyle={innerStyle}>
+            {content}
         </ShadowBorder>
     </ShadowBorder>
 }
 
+export const ESymbol = ({ symbol, className }: { symbol: string, className?: string } & { className?: string }) => {
+    // Symbol not implemented yet
+    let classNameV = "e-symbol" + (className ? " " + className : "");
+
+    if (symbol in Symbols == false) return null;
+
+    let symbolData = Symbols[symbol];
+
+    return <div className={classNameV} style={{
+        width: "100%", height: "100%", position: "relative",
+        display: "flex", justifyContent: "center", alignItems: "center"
+    }}>
+        <img src={symbolData.imagePath} alt={symbolData.name} style={{
+            width: symbolData.cells[0] * window.cell,
+            height: symbolData.cells[1] * window.cell,
+            display: "inline-block"
+        }} />
+    </div>
+}
+
 export const LayerBorder = forwardRef(({ children, className }: { children?: React.ReactNode, className?: string }, ref: React.Ref<HTMLDivElement>) => {
-    return <ShadowBorder leftTop={E_COLORS.black} rightBottom={E_COLORS.shadow} className={className} ref={ref} style={{flexGrow: 1}}>
+    return <ShadowBorder leftTop={E_COLORS.black} rightBottom={E_COLORS.shadow} className={className} ref={ref} style={{ flexGrow: 1 }}>
         {children}
     </ShadowBorder>
 })
 
-export const ShadowBorder = forwardRef(({ children, leftTop, rightBottom, className, style }: { children: React.ReactNode, leftTop: string, rightBottom: string, className?: string, style?: CSSProperties }, ref: React.Ref<HTMLDivElement>) => {
+export const ShadowBorder = forwardRef(({ children, leftTop, rightBottom, className, style, innerStyle }: { children: React.ReactNode, leftTop: string, rightBottom: string, className?: string, style?: CSSProperties, innerStyle?: CSSProperties }, ref: React.Ref<HTMLDivElement>) => {
     let classNameV = "border border-bottom-right" + (className ? " " + className : "");
 
     let styleV = style ? style : {};
     styleV = { ...styleV, borderRightColor: rightBottom, borderBottomColor: rightBottom };
 
+    let innerStyleV = innerStyle ? innerStyle : {};
+    innerStyleV = { ...innerStyleV, borderLeftColor: leftTop, borderTopColor: leftTop };
+
     return <div className={classNameV} style={styleV} ref={ref}>
-        <div className="border border-top-left" style={{ borderLeftColor: leftTop, borderTopColor: leftTop }}>
+        <div className="border border-top-left" style={innerStyleV}>
             {children}
         </div>
     </div>
