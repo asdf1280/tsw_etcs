@@ -5,6 +5,8 @@ import { Audio } from "./global";
 import { BUILD_NUMBER } from "..";
 import { DMIFunctions } from "./dmiFunc"
 
+import "./subwindow.scss"
+
 const root = createRoot(document.getElementById('dmi')!);
 
 const MainElement = () => {
@@ -50,11 +52,19 @@ const DMISubwindowRenderer = () => {
     let children: React.ReactNode[] = [];
     for (let i = 0; i < subwindowStack.length; i++) {
         let sw = subwindowStack[i];
+
+        let content: ReactNode;
+        if(typeof sw.render === "function") {
+            let MMM = sw.render.bind(sw);
+            content = <MMM />;
+        } else {
+            content = sw.render;
+        }
         children.push(<div id={`SW_${sw.uid}`} key={sw.uid} style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", zIndex: (i + 1) * 100 }} onClick={(e) => {
             // To prevent clicks from propagating to the parent
             e.stopPropagation();
         }}>
-            {typeof sw.render === "function" ? sw.render() : sw.render}
+            {content}
         </div>);
     }
     return <>
@@ -62,6 +72,12 @@ const DMISubwindowRenderer = () => {
     </>
 }
 
+/**
+ * Note: Even this class has render function, it's not a React component.
+ * The render function is React's function component itself.
+ * 
+ * This is to allow code outside of React and tsx file to easily activate the window.
+ */
 export interface Subwindow {
     uid: number;
     render: ReactNode | (() => ReactNode);
