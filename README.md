@@ -43,7 +43,9 @@ SBI(Service Brake Intervention) and EBI(Emergency Brake Intervention) are not im
 
 About screen ratio, ETCS requires DMI to have exactly 4:3 ratio. We'll create a rectangle in the center of the screen with 4:3 ratio, that reaches the maximum size possible. Remaining space will be filled with black. This is different from the previous version, which had dynamic screen ratio. Thus, we can ensure that the DMI is displayed correctly on any screen without having to worry about the aspect ratio. Just focus on the relative positions and sizes.
 
-The font used is 'Verdata'. It's recommended in the specification. All parts of the DMI should be in this font.
+The font used is 'Verdana'. It's recommended in the specification. All parts of the DMI should be in this font.
+
+The train data entry type used, defined in '11.3.9.6', is 'Flexible train data entry'. *Later*, we might want to implement to 'Switchable train data entry' and unrealistic ways of managing train preset. (like uploading JSON file)
 
 5.2.2 Luminance adjustment: Your iPad does it. Don't implement it here.
 5.2.3 Loudspeaker adjustment: Your iPad does it. Don't implement it here.
