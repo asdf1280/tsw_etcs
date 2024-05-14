@@ -1,170 +1,53 @@
-import React, { CSSProperties, ReactNode, forwardRef, useEffect } from 'react';
+import React, { CSSProperties, ReactNode, createRef, forwardRef, useEffect, useState } from 'react';
 import { E_COLORS } from './constants';
 import { Audio, Symbols } from './global';
+
+export type EButtonType = "UP" | "DOWN" | "DOWNREPEAT" | "DELAY";
 
 export interface EButtonProps {
     text: ReactNode | null;
     symbol: string | null;
 
     enabled: boolean;
-    type: "UP" | "DOWN" | "DOWNREPEAT" | "DELAY";
+    type: EButtonType;
 
     onClick?: () => void;
 }
 
-export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
-    // Symbol not implemented yet
-    let classNameV = "e-button" + (className ? " " + className : "");
-    if (!enabled) classNameV += " disabled";
-
-    let styleV = style ? style : {};
-    if(enabled) {
-        if(type === "DELAY") {
-            styleV.cursor = "progress";
-        } else if(type === "DOWNREPEAT") {
-            styleV.cursor = "grab";
-        } else if(type === "DOWN") {
-            styleV.cursor = "pointer";
-        } else {
-            styleV.cursor = "pointer";
-        }
-    }
-
-    // button ref
-    let buttonRef = React.createRef<HTMLDivElement>();
-    let [pressed, setPressed] = React.useState(false);
+function usePressDetector(onPressed: null | (() => void), onReleased: null | (() => void), onCanceled: null | (() => void), enabled: boolean, ref: React.RefObject<HTMLElement>) {
     useEffect(() => {
-        if (!buttonRef.current) return;
+        if (!ref.current) return;
         if (!enabled) return;
 
-        let e = buttonRef.current;
-
-        let onMouseDown: any;
-        let onMouseUp: any;
-        let onMouseLeave: any;
-        if (type === "UP") {
-            onMouseDown = () => {
-                setPressed(true);
-            };
-            onMouseUp = () => {
-                setPressed(false);
-                Audio.buttonPressSound();
-                onClick && onClick();
-            };
-            onMouseLeave = () => {
-                setPressed(false);
-            };
-        } else if (type === "DOWN" || type === "DOWNREPEAT") {
-            let timeout: any;
-            let virtualPressed = false;
-            onMouseDown = () => {
-                virtualPressed = true;
-                setPressed(true);
-                setTimeout(() => {
-                    setPressed(false);
-                }, 100);
-                Audio.buttonPressSound();
-                if (type === "DOWNREPEAT")
-                    timeout = setTimeout(() => {
-                        let interval = setInterval(() => {
-                            if (virtualPressed) {
-                                setPressed(true);
-                                setTimeout(() => {
-                                    setPressed(false);
-                                }, 100);
-
-                                Audio.buttonPressSound();
-                                onClick && onClick();
-                            } else {
-                                clearInterval(interval);
-                            }
-                        }, 300);
-                    }, 1500);
-            };
-            onMouseUp = () => {
-                virtualPressed = false;
-                clearTimeout(timeout);
-            };
-            onMouseLeave = () => {
-                virtualPressed = false;
-            };
-        } else if (type === "DELAY") {
-            /*
-            The delay-type button is similar to the up-type button but with a delay (see Figure 5). On
-selection by the driver, the delay-type button shall change to the “pressed” state and the
-‘click’ sound shall be played. The button shall then toggle every 0.25 seconds between
-the “pressed” and “enabled” states as long as the button remains pressed by the driver.
-After 2 seconds, if the button is still pressed by the driver, the button shall change again
-to the “pressed” state and the procedure according to the up-type button shall be followed.
-If the button is pressed by the driver for less than the 2 seconds, the button shall return to
-the ”enabled” state, the procedure with the 2 seconds timer shall be reset and no valid
-button activation shall be considered by the onboard
-*/
-            let virtualPressed = false;
-            let repeatIndex = 0;
-            onMouseDown = () => {
-                virtualPressed = true;
-                setPressed(true);
-
-                let interval = setInterval(() => {
-                    if (virtualPressed) {
-                        repeatIndex++;
-                        setPressed(repeatIndex % 2 === 0);
-
-                        if (repeatIndex === 8) {
-                            setPressed(true);
-
-                            clearInterval(interval);
-                        }
-                    } else {
-                        clearInterval(interval);
-                    }
-                }, 250);
-            };
-            onMouseUp = () => {
-                virtualPressed = false;
-                setPressed(false);
-
-                if (repeatIndex == 8) {
-                    Audio.buttonPressSound();
-                    onClick && onClick();
-                }
-                repeatIndex = 0;
-            };
-            onMouseLeave = () => {
-                virtualPressed = false;
-                repeatIndex = 0;
-                setPressed(false);
-            };
-        }
+        let e = ref.current;
 
         const globalMouseDown = () => {
-            onMouseDown && onMouseDown();
-            onMouseLeave && e.addEventListener('mouseleave', onMouseLeave);
+            onPressed && onPressed();
+            onCanceled && e.addEventListener('mouseleave', onCanceled);
             e.addEventListener('mouseup', globalMouseUp);
         }
         const globalMouseUp = () => {
-            onMouseUp && onMouseUp();
-            onMouseLeave && e.removeEventListener('mouseleave', onMouseLeave);
+            onReleased && onReleased();
+            onCanceled && e.removeEventListener('mouseleave', onCanceled);
             e.removeEventListener('mouseleave', globalMouseUp);
         }
         const globalTouchStart = () => {
-            onMouseDown && onMouseDown();
-            onMouseLeave && e.addEventListener('touchmove', globalTouchMove);
+            onPressed && onPressed();
+            onCanceled && e.addEventListener('touchmove', globalTouchMove);
             e.addEventListener('touchend', globalTouchEnd);
             e.removeEventListener('mousedown', globalMouseDown)
         }
         const globalTouchEnd = () => {
-            onMouseUp && onMouseUp();
-            onMouseLeave && e.removeEventListener('touchmove', globalTouchMove);
-            onMouseUp && e.removeEventListener('touchend', onMouseUp);
+            onReleased && onReleased();
+            onCanceled && e.removeEventListener('touchmove', globalTouchMove);
+            onReleased && e.removeEventListener('touchend', onReleased);
         }
         const globalTouchMove = (event: TouchEvent) => {
             event.preventDefault();
             var touch = event.touches[0];
             let elementFromPoint = document.elementFromPoint(touch.pageX, touch.pageY)!;
             if (!e.outerHTML.includes(elementFromPoint.outerHTML)) { // Not a safe method, but it works
-                onMouseLeave && onMouseLeave();
+                onCanceled && onCanceled();
                 e.removeEventListener('touchend', globalTouchEnd);
             }
             e.removeEventListener('mouseleave', globalMouseUp);
@@ -176,12 +59,125 @@ button activation shall be considered by the onboard
         return () => {
             e.removeEventListener('mousedown', globalMouseDown);
             e.removeEventListener('touchstart', globalTouchStart);
-            onMouseLeave && e.removeEventListener('mouseleave', onMouseLeave);
+            onCanceled && e.removeEventListener('mouseleave', onCanceled);
             e.removeEventListener('mouseup', globalMouseUp);
             e.removeEventListener('touchend', globalTouchEnd);
             e.removeEventListener('touchmove', globalTouchMove);
         }
-    }, [enabled, onClick]);
+    }, [enabled, ref.current]);
+}
+
+export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
+    // Symbol not implemented yet
+    let classNameV = "e-button" + (className ? " " + className : "");
+    if (!enabled) classNameV += " disabled";
+
+    let styleV = style ? style : {};
+    if (enabled) {
+        if (type === "DELAY") {
+            styleV.cursor = "progress";
+        } else if (type === "DOWNREPEAT") {
+            styleV.cursor = "grab";
+        } else if (type === "DOWN") {
+            styleV.cursor = "pointer";
+        } else {
+            styleV.cursor = "pointer";
+        }
+    }
+
+    // button ref
+    let buttonRef = createRef<HTMLDivElement>();
+    let [pressed, setPressed] = useState(false);
+
+    let onMouseDown: any;
+    let onMouseUp: any;
+    let onMouseLeave: any;
+    if (type === "UP") {
+        onMouseDown = () => {
+            setPressed(true);
+        };
+        onMouseUp = () => {
+            setPressed(false);
+            Audio.buttonPressSound();
+            onClick && onClick();
+        };
+        onMouseLeave = () => {
+            setPressed(false);
+        };
+    } else if (type === "DOWN" || type === "DOWNREPEAT") {
+        let timeout: any;
+        let virtualPressed = false;
+        onMouseDown = () => {
+            virtualPressed = true;
+            setPressed(true);
+            setTimeout(() => {
+                setPressed(false);
+            }, 100);
+            Audio.buttonPressSound();
+            if (type === "DOWNREPEAT")
+                timeout = setTimeout(() => {
+                    let interval = setInterval(() => {
+                        if (virtualPressed) {
+                            setPressed(true);
+                            setTimeout(() => {
+                                setPressed(false);
+                            }, 100);
+
+                            Audio.buttonPressSound();
+                            onClick && onClick();
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, 300);
+                }, 1500);
+        };
+        onMouseUp = () => {
+            virtualPressed = false;
+            clearTimeout(timeout);
+        };
+        onMouseLeave = () => {
+            virtualPressed = false;
+        };
+    } else if (type === "DELAY") {
+        let virtualPressed = false;
+        let repeatIndex = 0;
+        onMouseDown = () => {
+            virtualPressed = true;
+            setPressed(true);
+
+            let interval = setInterval(() => {
+                if (virtualPressed) {
+                    repeatIndex++;
+                    setPressed(repeatIndex % 2 === 0);
+
+                    if (repeatIndex === 8) {
+                        setPressed(true);
+
+                        clearInterval(interval);
+                    }
+                } else {
+                    clearInterval(interval);
+                }
+            }, 250);
+        };
+        onMouseUp = () => {
+            virtualPressed = false;
+            setPressed(false);
+
+            if (repeatIndex == 8) {
+                Audio.buttonPressSound();
+                onClick && onClick();
+            }
+            repeatIndex = 0;
+        };
+        onMouseLeave = () => {
+            virtualPressed = false;
+            repeatIndex = 0;
+            setPressed(false);
+        };
+    }
+
+    usePressDetector(onMouseDown, onMouseUp, onMouseLeave, enabled, buttonRef);
 
     // For text buttons, we support grey text when disabled. For symbol buttons, it will display disabled version if available.
 
