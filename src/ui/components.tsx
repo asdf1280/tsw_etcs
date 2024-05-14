@@ -55,7 +55,7 @@ function usePressDetector(onPressed: null | (() => void), onReleased: null | (()
     }, [enabled, ref.current]);
 }
 
-function useEButtonBehaviour(action: null | (() => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
+function useEButtonBehaviour(action: null | ((repeat: number) => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
     let [pressed, setPressed] = useState(false);
 
     let onMouseDown: any;
@@ -67,7 +67,7 @@ function useEButtonBehaviour(action: null | (() => void), type: EButtonType, ena
         };
         onMouseUp = () => {
             setPressed(false);
-            action && action();
+            action && action(0);
         };
         onMouseLeave = () => {
             setPressed(false);
@@ -81,8 +81,11 @@ function useEButtonBehaviour(action: null | (() => void), type: EButtonType, ena
             setTimeout(() => {
                 setPressed(false);
             }, 100);
+            action && action(0);
+
             if (type === "DOWNREPEAT")
                 timeout = setTimeout(() => {
+                    let repeats = 1;
                     let interval = setInterval(() => {
                         if (virtualPressed) {
                             setPressed(true);
@@ -90,7 +93,7 @@ function useEButtonBehaviour(action: null | (() => void), type: EButtonType, ena
                                 setPressed(false);
                             }, 100);
 
-                            action && action();
+                            action && action(repeats++);
                         } else {
                             clearInterval(interval);
                         }
@@ -131,7 +134,7 @@ function useEButtonBehaviour(action: null | (() => void), type: EButtonType, ena
             setPressed(false);
 
             if (repeatIndex == 8) {
-                action && action();
+                action && action(0);
             }
             repeatIndex = 0;
         };
@@ -156,7 +159,7 @@ export interface EButtonProps {
     enabled: boolean;
     type: EButtonType;
 
-    onClick?: () => void;
+    onClick?: (repeat: number) => void;
 }
 
 export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
@@ -179,9 +182,9 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
 
     // button ref
     let buttonRef = createRef<HTMLDivElement>();
-    let pressed = useEButtonBehaviour(() => {
+    let pressed = useEButtonBehaviour((n) => {
         Audio.buttonPressSound();
-        onClick && onClick();
+        onClick && onClick(n);
     }, type, enabled, buttonRef);
 
     // For text buttons, we support grey text when disabled. For symbol buttons, it will display disabled version if available.
@@ -221,12 +224,12 @@ export interface FButtonProps {
     enabled: boolean;
     type: EButtonType;
 
-    onClick?: () => void;
+    onClick?: (repeat: number) => void;
 }
 
 export const FButton = forwardRef(({ children, enabled, type, onClick, className, style, setPressed }:
     FButtonProps & { className?: string, style?: CSSProperties, setPressed?: (b: boolean) => void }, ref: Ref<HTMLDivElement>) => {
-        
+
     let styleV = style ? style : {};
     if (enabled) {
         if (type === "DELAY") {
@@ -242,9 +245,9 @@ export const FButton = forwardRef(({ children, enabled, type, onClick, className
 
     // button ref
     let buttonRef = createRef<HTMLDivElement>();
-    let pressed = useEButtonBehaviour(() => {
+    let pressed = useEButtonBehaviour((n) => {
         Audio.buttonPressSound();
-        onClick && onClick();
+        onClick && onClick(n);
     }, type, enabled, buttonRef);
 
     setPressed && setPressed(pressed);
