@@ -1,4 +1,4 @@
-import React, { CSSProperties, ReactNode, createRef, forwardRef, useEffect, useState } from 'react';
+import React, { CSSProperties, ReactNode, RefObject, createRef, forwardRef, useEffect, useState } from 'react';
 import { E_COLORS } from './constants';
 import { Audio, Symbols } from './global';
 
@@ -67,26 +67,7 @@ function usePressDetector(onPressed: null | (() => void), onReleased: null | (()
     }, [enabled, ref.current]);
 }
 
-export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
-    // Symbol not implemented yet
-    let classNameV = "e-button" + (className ? " " + className : "");
-    if (!enabled) classNameV += " disabled";
-
-    let styleV = style ? style : {};
-    if (enabled) {
-        if (type === "DELAY") {
-            styleV.cursor = "progress";
-        } else if (type === "DOWNREPEAT") {
-            styleV.cursor = "grab";
-        } else if (type === "DOWN") {
-            styleV.cursor = "pointer";
-        } else {
-            styleV.cursor = "pointer";
-        }
-    }
-
-    // button ref
-    let buttonRef = createRef<HTMLDivElement>();
+function useEButtonBehaviour(action: null | (() => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
     let [pressed, setPressed] = useState(false);
 
     let onMouseDown: any;
@@ -98,8 +79,7 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
         };
         onMouseUp = () => {
             setPressed(false);
-            Audio.buttonPressSound();
-            onClick && onClick();
+            action && action();
         };
         onMouseLeave = () => {
             setPressed(false);
@@ -113,7 +93,6 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
             setTimeout(() => {
                 setPressed(false);
             }, 100);
-            Audio.buttonPressSound();
             if (type === "DOWNREPEAT")
                 timeout = setTimeout(() => {
                     let interval = setInterval(() => {
@@ -123,8 +102,7 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
                                 setPressed(false);
                             }, 100);
 
-                            Audio.buttonPressSound();
-                            onClick && onClick();
+                            action && action();
                         } else {
                             clearInterval(interval);
                         }
@@ -165,8 +143,7 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
             setPressed(false);
 
             if (repeatIndex == 8) {
-                Audio.buttonPressSound();
-                onClick && onClick();
+                action && action();
             }
             repeatIndex = 0;
         };
@@ -177,7 +154,35 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
         };
     }
 
-    usePressDetector(onMouseDown, onMouseUp, onMouseLeave, enabled, buttonRef);
+    usePressDetector(onMouseDown, onMouseUp, onMouseLeave, enabled, ref);
+
+    return pressed;
+}
+
+export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
+    // Symbol not implemented yet
+    let classNameV = "e-button" + (className ? " " + className : "");
+    if (!enabled) classNameV += " disabled";
+
+    let styleV = style ? style : {};
+    if (enabled) {
+        if (type === "DELAY") {
+            styleV.cursor = "progress";
+        } else if (type === "DOWNREPEAT") {
+            styleV.cursor = "grab";
+        } else if (type === "DOWN") {
+            styleV.cursor = "pointer";
+        } else {
+            styleV.cursor = "pointer";
+        }
+    }
+
+    // button ref
+    let buttonRef = createRef<HTMLDivElement>();
+    let pressed = useEButtonBehaviour(() => {
+        Audio.buttonPressSound();
+        onClick && onClick();
+    }, type, enabled, buttonRef);
 
     // For text buttons, we support grey text when disabled. For symbol buttons, it will display disabled version if available.
 
