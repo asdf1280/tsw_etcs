@@ -188,20 +188,20 @@ export const DMIWindow = () => {
             <DMIArrangement id="E7" x={54} y={40} w={234} h={20}> </DMIArrangement>
             <DMIArrangement id="E8" x={54} y={60} w={234} h={20}> </DMIArrangement>
             <DMIArrangement id="E9" x={54} y={80} w={234} h={20}> </DMIArrangement>
-            <DMIArrangement id="E10" x={288} y={0} w={46} h={50} ><EButton text={null} symbol={"NA_ScrollUp"} type="DOWNREPEAT" enabled={false} className="full" /> </DMIArrangement>
-            <DMIArrangement id="E11" x={288} y={50} w={46} h={50}> <EButton text={null} symbol={"NA_ScrollDown"} type="DOWNREPEAT" enabled={false} className="full" /> </DMIArrangement>
+            <DMIArrangement id="E10" x={288} y={0} w={46} h={50} ><EButton text="NA_ScrollUp" trySymbol type="DOWNREPEAT" enabled={false} className="full" /> </DMIArrangement>
+            <DMIArrangement id="E11" x={288} y={50} w={46} h={50}> <EButton text="NA_ScrollDown" trySymbol type="DOWNREPEAT" enabled={false} className="full" /> </DMIArrangement>
             <DMIArrangement id="E5E9" x={54} y={0} w={234} h={100}> <LayerBorder /> </DMIArrangement>
         </DMIArrangement>
         <DMIArrangement id="F" x={580} y={15} w={60} h={450}>
-            <DMIArrangement id="F1" x={0} y={0} w={60} h={50}> <EButton text="Main" symbol={null} type="UP" enabled={true} className="full" onClick={DMIFunctions.onMenuClicked} /> </DMIArrangement>
-            <DMIArrangement id="F2" x={0} y={50} w={60} h={50}> <EButton text={<>Over-<br />ride</>} symbol={null} type="UP" enabled={true} className="full" onClick={DMIFunctions.onOverrideClicked} /> </DMIArrangement>
-            <DMIArrangement id="F3" x={0} y={100} w={60} h={50}> <EButton text={<>Data<br />view</>} symbol={null} type="UP" enabled={true} className="full" /> </DMIArrangement>
-            <DMIArrangement id="F4" x={0} y={150} w={60} h={50}> <EButton text={<>Spec</>} symbol={null} type="UP" enabled={true} className="full" onClick={DMIFunctions.onSpecClicked} /> </DMIArrangement>
-            <DMIArrangement id="F5" x={0} y={200} w={60} h={50}> <EButton text={null} symbol={"SE_Entry"} type="UP" enabled={true} className="full" onClick={DMIFunctions.onSettingsClicked} /> </DMIArrangement>
+            <DMIArrangement id="F1" x={0} y={0} w={60} h={50}> <EButton text="Main" type="UP" enabled={true} className="full" onClick={DMIFunctions.onMenuClicked} /> </DMIArrangement>
+            <DMIArrangement id="F2" x={0} y={50} w={60} h={50}> <EButton text={<>Over-<br />ride</>} type="UP" enabled={true} className="full" onClick={DMIFunctions.onOverrideClicked} /> </DMIArrangement>
+            <DMIArrangement id="F3" x={0} y={100} w={60} h={50}> <EButton text={<>Data<br />view</>} type="UP" enabled={true} className="full" /> </DMIArrangement>
+            <DMIArrangement id="F4" x={0} y={150} w={60} h={50}> <EButton text={<>Spec</>} type="UP" enabled={true} className="full" onClick={DMIFunctions.onSpecClicked} /> </DMIArrangement>
+            <DMIArrangement id="F5" x={0} y={200} w={60} h={50}> <EButton text="SE_Entry" trySymbol type="UP" enabled={true} className="full" onClick={DMIFunctions.onSettingsClicked} /> </DMIArrangement>
             <DMIArrangement id="F6" x={0} y={250} w={60} h={50}> </DMIArrangement>
             <DMIArrangement id="F7" x={0} y={300} w={60} h={50}> </DMIArrangement>
             <DMIArrangement id="F8" x={0} y={350} w={60} h={50}> </DMIArrangement>
-            <DMIArrangement id="F9" x={0} y={400} w={60} h={50}> <EButton text={<>Sim</>} symbol={null} type="UP" enabled={true} className="full" /> </DMIArrangement>
+            <DMIArrangement id="F9" x={0} y={400} w={60} h={50}> <EButton text={<>Sim</>} type="UP" enabled={true} className="full" /> </DMIArrangement>
         </DMIArrangement>
         <DMIArrangement id="G" x={334} y={315} w={246} h={150}>
             <DMIArrangement id="G1" x={0} y={0} w={49} h={50}> <LayerBorder /> </DMIArrangement>

@@ -49,8 +49,12 @@
 
         border: calc(1 * var(--cell)) var(--e-mediumGrey) solid;
 
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+
         >.label {
-            position: absolute;
+            position: relative;
             width: calc(204 * var(--cell));
             height: 100%;
 
@@ -70,11 +74,11 @@
         }
 
         >.data {
-            position: absolute;
-            top: 0;
-            left: calc(204 * var(--cell));
-            width: calc(102 * var(--cell));
+            position: relative;
+            flex-grow: 1;
+            flex-basis: 0;
             height: 100%;
+            max-width: calc(102 * var(--cell));
 
             background-color: var(--e-darkGrey);
             color: var(--e-grey);
@@ -87,7 +91,15 @@
             padding-left: calc(10 * var(--cell));
 
             >span {
+                position: relative;
                 display: inline-block;
+            }
+
+            .cursor {
+                position: absolute;
+                box-sizing: border-box;
+
+                animation: cursor 1s steps(1, end) infinite;
             }
         }
 
@@ -95,6 +107,7 @@
             .data {
                 left: 0;
                 width: calc(306 * var(--cell)); // When there's no label in the field, data should take up the full width
+                max-width: calc(306 * var(--cell));
             }
         }
 
@@ -113,7 +126,8 @@
         }
     }
 
-    >.key {
+    .key {
+        position: absolute;
         width: calc(102 * var(--cell));
         height: calc(50 * var(--cell));
     }
@@ -123,6 +137,14 @@
     >.next {
         width: calc(82 * var(--cell));
         height: calc(50 * var(--cell));
+    }
+
+    >.keyboard-box {
+        top: calc(200 * var(--cell));
+        width: calc(306 * var(--cell));
+        height: calc(200 * var(--cell));
+
+        display: block;
     }
 
     &.half {
@@ -158,6 +180,10 @@
         >.next {
             left: calc(164 * var(--cell));
             top: calc(400 * var(--cell));
+        }
+
+        >.keyboard-box {
+            left: 0;
         }
     }
 
@@ -196,42 +222,9 @@
             top: calc(400 * var(--cell));
         }
 
-        >.confirm {
-            left: 0;
-            top: calc(350 * var(--cell));
-            width: calc(334 * var(--cell));
-            height: calc(100 * var(--cell));
-
-            >.label {
-                height: calc(50 * var(--cell));
-
-                display: flex;
-                text-align: center;
-
-                align-items: center;
-                justify-content: center;
-
-                span {
-                    display: inline-block;
-                }
-            }
-            >.filled {
-                height: calc(50 * var(--cell));
-
-                color: var(--e-black);
-                background-color: var(--e-darkGrey);
-                border: calc(1 * var(--cell)) var(--e-mediumGrey) solid;
-
-                display: flex;
-                text-align: center;
-
-                align-items: center;
-                justify-content: center;
-
-                span {
-                    display: inline-block;
-                }
-            }
+        >.keyboard-box {
+            position: relative;
+            left: calc(334 * var(--cell));
         }
     }
 
@@ -240,6 +233,10 @@
     .enumeric {
         .key {
             font-size: calc(16 * var(--cell));
+        }
+
+        .letter {
+            font-size: calc(10 * var(--cell));
         }
     }
 
@@ -251,5 +248,90 @@
 
     .key.dot {
         font-weight: bold;
+    }
+
+    .confirm-box {
+        left: 0;
+        top: calc(350 * var(--cell));
+        width: calc(334 * var(--cell));
+        height: calc(100 * var(--cell));
+
+        >.label {
+            height: calc(50 * var(--cell));
+
+            display: flex;
+            text-align: center;
+
+            align-items: center;
+            justify-content: center;
+
+            span {
+                display: inline-block;
+            }
+        }
+
+        >.filled {
+            height: calc(50 * var(--cell));
+
+            color: var(--e-black);
+            background-color: var(--e-darkGrey);
+            border: calc(1 * var(--cell)) var(--e-mediumGrey) solid;
+
+            display: flex;
+            text-align: center;
+
+            align-items: center;
+            justify-content: center;
+
+            span {
+                display: inline-block;
+            }
+        }
+    }
+
+    .echotext-box {
+        left: 0;
+        top: calc(100 * var(--cell));
+        width: calc(334 * var(--cell));
+        height: calc(350 * var(--cell));
+
+        display: block;
+
+        .echotext-row {
+            position: relative;
+            display: flex;
+            width: 100%;
+            height: max-content;
+
+            flex-direction: row;
+            align-items: stretch;
+            justify-content: flex-start;
+        }
+
+        .left {
+            position: relative;
+            padding-left: calc(10 * var(--cell));
+            padding-right: calc(5 * var(--cell));
+            width: calc(204 * var(--cell));
+            text-align: right;
+        }
+
+        .right {
+            position: relative;
+            padding-left: calc(5 * var(--cell));
+            padding-right: calc(10 * var(--cell));
+            width: calc(130 * var(--cell));
+            text-align: left;
+        }
+    }
+}
+
+@keyframes cursor {
+
+    0%,
+    100% {}
+
+    50% {
+        border-bottom: calc(2 * var(--cell)) solid var(--e-black);
     }
 }

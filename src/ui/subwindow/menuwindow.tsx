@@ -32,13 +32,13 @@ export class MenuWindow implements Subwindow {
             if(item.text === null) continue; /// Separator
 
             let text: string | null = item.text;
-            let symbol = null;
+            let trySymbol = false;
             if(text?.startsWith("SY:")) {
-                symbol = text.substring(3);
-                text = null;
+                text = text.substring(3);
+                trySymbol = true;
             }
 
-            btns.push(<EButton key={i} text={text} symbol={symbol} enabled={enabled} type={item.buttontype || "UP"} onClick={item.action ?? undefined} style={{
+            btns.push(<EButton key={i} text={text} trySymbol enabled={enabled} type={item.buttontype || "UP"} onClick={item.action ?? undefined} style={{
                 top: 50 * window.cell * y,
                 left: 153 * window.cell * x,
             }} />);
@@ -46,7 +46,7 @@ export class MenuWindow implements Subwindow {
         return <div className="subwindow subwindow-menu">
             <div className="title">{this.options.title}</div>
             {btns}
-            <EButton text={null} symbol="NA_CloseWindow" enabled={true} type="UP" className="close" onClick={() => {
+            <EButton text="NA_CloseWindow" trySymbol enabled={true} type="UP" className="close" onClick={() => {
                 CloseSubwindow(this.uid);
             }} />
         </div>

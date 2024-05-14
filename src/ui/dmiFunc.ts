@@ -71,7 +71,6 @@ export class DMIFunctions {
             btns = [
                 {
                     text: "TRN",
-                    symbol: null,
                     type: "UP",
                     action: console.log,
                     left: 142,
@@ -80,8 +79,8 @@ export class DMIFunctions {
                     height: 50
                 },
                 {
-                    text: null,
-                    symbol: "SE_Entry",
+                    text: "SE_Entry",
+                    trySymbol: true,
                     type: "UP",
                     action: console.log,
                     left: 224,
@@ -97,13 +96,13 @@ export class DMIFunctions {
             fields: [
                 {
                     name: "driverid",
-                    label: "N/A",
+                    label: null,
                     type: "AlphaNumeric",
                     preEnteredValue: current
                 }
             ],
             additionalButtons: btns,
-            halfLayoutIfApplicable: "EnabledWithoutLabel",
+            halfLayoutIfApplicable: true,
             onFinished: onFinished,
             onCancel: onCancel
         }));
@@ -114,6 +113,84 @@ export class DMIFunctions {
             title: "Train data",
             confirmMessage: "Train data entry complete?",
             fields: [
+                {
+                    name: "category",
+                    label: "Train category",
+                    type: [
+                        {
+                            label: "PASS 1",
+                            name: "pass1"
+                        },
+                        {
+                            label: "PASS 2",
+                            name: "pass2"
+                        },
+                        {
+                            label: "PASS 3",
+                            name: "pass3"
+                        },
+                        { // Tilt 1-7
+                            label: "TILT 1",
+                            name: "tilt1"
+                        },
+                        {
+                            label: "TILT 2",
+                            name: "tilt2"
+                        },
+                        {
+                            label: "TILT 3",
+                            name: "tilt3"
+                        },
+                        {
+                            label: "TILT 4",
+                            name: "tilt4"
+                        },
+                        {
+                            label: "TILT 5",
+                            name: "tilt5"
+                        },
+                        {
+                            label: "TILT 6",
+                            name: "tilt6"
+                        },
+                        {
+                            label: "TILT 7",
+                            name: "tilt7"
+                        },
+                        { // FP 1-4
+                            label: "FP 1",
+                            name: "fp1"
+                        },
+                        {
+                            label: "FP 2",
+                            name: "fp2"
+                        },
+                        {
+                            label: "FP 3",
+                            name: "fp3"
+                        },
+                        {
+                            label: "FP 4",
+                            name: "fp4"
+                        },
+                        { // FG 1-4
+                            label: "FG 1",
+                            name: "fg1"
+                        },
+                        {
+                            label: "FG 2",
+                            name: "fg2"
+                        },
+                        {
+                            label: "FG 3",
+                            name: "fg3"
+                        },
+                        {
+                            label: "FG 4",
+                            name: "fg4"
+                        }
+                    ]
+                },
                 {
                     name: "length",
                     label: "Length (m)",
@@ -130,19 +207,9 @@ export class DMIFunctions {
                     type: "Numeric"
                 },
                 {
-                    name: "vmax",
-                    label: "Maximum speed (km/h)",
-                    type: "Numeric"
-                },
-                {
-                    name: "vmax",
-                    label: "Maximum speed (km/h)",
-                    type: "Numeric"
-                },
-                {
-                    name: "vmax",
-                    label: "Maximum speed (km/h)",
-                    type: "Numeric"
+                    name: "airtight",
+                    label: "Airtight",
+                    type: "Boolean"
                 }
             ],
             onFinished: console.log,

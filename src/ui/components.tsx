@@ -1,4 +1,4 @@
-import React, { CSSProperties, ReactNode, Ref, RefObject, createRef, forwardRef, useEffect, useState } from 'react';
+import React, { CSSProperties, ReactNode, Ref, RefObject, act, createRef, forwardRef, useEffect, useState } from 'react';
 import { E_COLORS } from './constants';
 import { Audio, Symbols } from './global';
 
@@ -11,34 +11,49 @@ function usePressDetector(onPressed: null | (() => void), onReleased: null | (()
 
         const globalMouseDown = () => {
             onPressed && onPressed();
-            onCanceled && e.addEventListener('mouseleave', onCanceled);
+
+            e.addEventListener('mouseleave', globalMouseLeave);
             e.addEventListener('mouseup', globalMouseUp);
+        }
+        const globalMouseLeave = () => {
+            onCanceled && onCanceled();
+
+            e.removeEventListener('mouseup', globalMouseUp);
+            e.removeEventListener('mouseleave', globalMouseLeave);
         }
         const globalMouseUp = () => {
             onReleased && onReleased();
-            onCanceled && e.removeEventListener('mouseleave', onCanceled);
-            e.removeEventListener('mouseleave', globalMouseUp);
+
+            e.removeEventListener('mouseup', globalMouseUp);
+            e.removeEventListener('mouseleave', globalMouseLeave);
         }
+
         const globalTouchStart = () => {
             onPressed && onPressed();
-            onCanceled && e.addEventListener('touchmove', globalTouchMove);
+
+            e.addEventListener('touchmove', globalTouchMove);
             e.addEventListener('touchend', globalTouchEnd);
-            e.removeEventListener('mousedown', globalMouseDown)
+            e.removeEventListener('mousedown', globalMouseDown); // Prevent mouse event when touch event is active (to prevent double click)
         }
+
         const globalTouchEnd = () => {
             onReleased && onReleased();
-            onCanceled && e.removeEventListener('touchmove', globalTouchMove);
-            onReleased && e.removeEventListener('touchend', onReleased);
+
+            e.removeEventListener('touchmove', globalTouchMove);
+            e.removeEventListener('touchend', globalTouchEnd);
         }
         const globalTouchMove = (event: TouchEvent) => {
             event.preventDefault();
             var touch = event.touches[0];
             let elementFromPoint = document.elementFromPoint(touch.pageX, touch.pageY)!;
+
             if (!e.outerHTML.includes(elementFromPoint.outerHTML)) { // Not a safe method, but it works
                 onCanceled && onCanceled();
+
                 e.removeEventListener('touchend', globalTouchEnd);
+                e.removeEventListener('touchmove', globalTouchMove);
             }
-            e.removeEventListener('mouseleave', globalMouseUp);
+            
         }
 
         e.addEventListener('mousedown', globalMouseDown);
@@ -47,12 +62,12 @@ function usePressDetector(onPressed: null | (() => void), onReleased: null | (()
         return () => {
             e.removeEventListener('mousedown', globalMouseDown);
             e.removeEventListener('touchstart', globalTouchStart);
-            onCanceled && e.removeEventListener('mouseleave', onCanceled);
+            e.removeEventListener('mouseleave', globalMouseLeave);
             e.removeEventListener('mouseup', globalMouseUp);
             e.removeEventListener('touchend', globalTouchEnd);
             e.removeEventListener('touchmove', globalTouchMove);
         }
-    }, [enabled, ref.current]);
+    }, [enabled]);
 }
 
 export function useEButtonBehaviour(action: null | ((repeat: number) => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
@@ -106,6 +121,7 @@ export function useEButtonBehaviour(action: null | ((repeat: number) => void), t
         };
         onMouseLeave = () => {
             virtualPressed = false;
+            clearTimeout(timeout);
         };
     } else if (type === "DELAY") {
         let virtualPressed = false;
@@ -153,8 +169,8 @@ export function useEButtonBehaviour(action: null | ((repeat: number) => void), t
 export type EButtonType = "UP" | "DOWN" | "DOWNREPEAT" | "DELAY";
 
 export interface EButtonProps {
-    text: ReactNode | null;
-    symbol: string | null;
+    text?: ReactNode;
+    trySymbol?: boolean;
 
     enabled: boolean;
     type: EButtonType;
@@ -162,7 +178,7 @@ export interface EButtonProps {
     onClick?: (repeat: number) => void;
 }
 
-export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
+export const EButton = ({ text, trySymbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
     // Symbol not implemented yet
     let classNameV = "e-button" + (className ? " " + className : "");
     if (!enabled) classNameV += " disabled";
@@ -191,8 +207,8 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
 
     let content: ReactNode;
     let innerStyle: any = {};
-    if (symbol && symbol in Symbols) {
-        let symbolData = Symbols[symbol];
+    if (trySymbol && text as any in Symbols) {
+        let symbolData = Symbols[text as any];
         content = <img src={enabled ? symbolData.imagePath : (symbolData.disabledImagePath ?? symbolData.imagePath)} alt={symbolData.name} style={{
             width: symbolData.cells[0] * window.cell,
             height: symbolData.cells[1] * window.cell,
@@ -203,7 +219,7 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
             display: "flex", justifyContent: "center", alignItems: "center"
         } satisfies CSSProperties;
     } else {
-        content = <div style={{ display: "inline-block" }}>{text}</div>;
+        content = <div style={{ display: "inline-block" }}>{text ?? null}</div>;
 
         innerStyle = {
             width: "100%", height: "100%", position: "relative",
