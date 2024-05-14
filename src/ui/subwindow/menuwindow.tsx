@@ -1,7 +1,6 @@
-import React from "react";
-import { CloseSubwindow, Subwindow } from "./dmi"
-import "./subwindow.scss";
-import { EButton } from "./components";
+import React, { useState } from "react";
+import { CloseSubwindow, Subwindow } from "../dmi"
+import { EButton } from "../components";
 
 export interface MenuWindowOptions {
     title: string;

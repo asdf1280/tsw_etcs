@@ -3,9 +3,16 @@
 
     background-color: var(--e-darkBlue);
 
-    >*{
+    >* {
         position: absolute;
     }
+}
+
+.subwindow-menu {
+    left: calc(334 * var(--cell));
+    top: calc(15 * var(--cell));
+    width: calc(306 * var(--cell));
+    height: calc(450 * var(--cell));
 
     >.title {
         text-align: left;
@@ -31,9 +38,218 @@
     }
 }
 
-.subwindow-menu {
-    left: calc(334 * var(--cell));
-    top: calc(15 * var(--cell));
-    width: calc(306 * var(--cell));
-    height: calc(450 * var(--cell));
+.subwindow-dataentry {
+    >.title {
+        background-color: var(--e-black);
+    }
+
+    >.field {
+        height: calc(50 * var(--cell));
+        width: calc(306 * var(--cell));
+
+        border: calc(1 * var(--cell)) var(--e-mediumGrey) solid;
+
+        >.label {
+            position: absolute;
+            width: calc(204 * var(--cell));
+            height: 100%;
+
+            background-color: var(--e-darkGrey);
+            color: var(--e-grey);
+
+            text-align: right;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: calc(10 * var(--cell));
+
+            >span {
+                display: inline-block;
+            }
+        }
+
+        >.data {
+            position: absolute;
+            top: 0;
+            left: calc(204 * var(--cell));
+            width: calc(102 * var(--cell));
+            height: 100%;
+
+            background-color: var(--e-darkGrey);
+            color: var(--e-grey);
+
+            text-align: left;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: calc(10 * var(--cell));
+
+            >span {
+                display: inline-block;
+            }
+        }
+
+        &:not(:has(>.label)) {
+            .data {
+                left: 0;
+                width: calc(306 * var(--cell)); // When there's no label in the field, data should take up the full width
+            }
+        }
+
+        &.selected {
+            >.data {
+                background-color: var(--e-mediumGrey);
+                color: var(--e-black);
+            }
+        }
+
+        &.accepted {
+            >.data {
+                background-color: var(--e-darkGrey);
+                color: var(--e-white);
+            }
+        }
+    }
+
+    >.key {
+        width: calc(102 * var(--cell));
+        height: calc(50 * var(--cell));
+    }
+
+    >.close,
+    >.prev,
+    >.next {
+        width: calc(82 * var(--cell));
+        height: calc(50 * var(--cell));
+    }
+
+    &.half {
+        left: calc(334 * var(--cell));
+        top: calc(15 * var(--cell));
+        width: calc(306 * var(--cell));
+        height: calc(450 * var(--cell));
+
+        >.field {
+            left: 0;
+        }
+
+        >.title {
+            text-align: left;
+            padding-left: calc(3 * var(--cell));
+
+            left: calc(0 * var(--cell));
+            top: calc(0 * var(--cell));
+            width: calc(306 * var(--cell));
+            height: calc(24 * var(--cell));
+        }
+
+        >.close {
+            left: calc(0 * var(--cell));
+            top: calc(400 * var(--cell));
+        }
+
+        >.prev {
+            left: calc(82 * var(--cell));
+            top: calc(400 * var(--cell));
+        }
+
+        >.next {
+            left: calc(164 * var(--cell));
+            top: calc(400 * var(--cell));
+        }
+    }
+
+    &.total {
+        left: calc(0 * var(--cell));
+        top: calc(15 * var(--cell));
+        width: calc(640 * var(--cell));
+        height: calc(450 * var(--cell));
+
+        >.field {
+            left: calc(334 * var(--cell));
+        }
+
+        >.title {
+            text-align: right;
+            padding-right: calc(3 * var(--cell));
+
+            left: calc(0 * var(--cell));
+            top: calc(0 * var(--cell));
+            width: calc(334 * var(--cell));
+            height: calc(24 * var(--cell));
+        }
+
+        >.close {
+            left: calc(334 * var(--cell));
+            top: calc(400 * var(--cell));
+        }
+
+        >.prev {
+            left: calc(416 * var(--cell));
+            top: calc(400 * var(--cell));
+        }
+
+        >.next {
+            left: calc(498 * var(--cell));
+            top: calc(400 * var(--cell));
+        }
+
+        >.confirm {
+            left: 0;
+            top: calc(350 * var(--cell));
+            width: calc(334 * var(--cell));
+            height: calc(100 * var(--cell));
+
+            >.label {
+                height: calc(50 * var(--cell));
+
+                display: flex;
+                text-align: center;
+
+                align-items: center;
+                justify-content: center;
+
+                span {
+                    display: inline-block;
+                }
+            }
+            >.filled {
+                height: calc(50 * var(--cell));
+
+                color: var(--e-black);
+                background-color: var(--e-darkGrey);
+                border: calc(1 * var(--cell)) var(--e-mediumGrey) solid;
+
+                display: flex;
+                text-align: center;
+
+                align-items: center;
+                justify-content: center;
+
+                span {
+                    display: inline-block;
+                }
+            }
+        }
+    }
+
+    .numeric,
+    .alphanumeric,
+    .enumeric {
+        .key {
+            font-size: calc(16 * var(--cell));
+        }
+    }
+
+    .dedicated {
+        .key {
+            font-size: calc(12 * var(--cell));
+        }
+    }
+
+    .key.dot {
+        font-weight: bold;
+    }
 }

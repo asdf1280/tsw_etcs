@@ -1,5 +1,6 @@
 import { OpenSubwindow } from "./dmi";
-import { MenuWindow } from "./subwindow";
+import { MenuWindow } from "./subwindow/menuwindow";
+import { DataEntryAdditionalButton, DataEntryResult, DataEntryWindow } from "./subwindow/dataentrywindow"
 
 export class DMIFunctions {
     static init() {
@@ -15,9 +16,11 @@ export class DMIFunctions {
                 },
                 {
                     text: "Driver ID",
+                    action: DMIFunctions.menu_onDriverIdClicked
                 },
                 {
                     text: "Train data",
+                    action: DMIFunctions.menu_onTrainDataClicked
                 },
                 {
                     text: null, // Separator
@@ -56,6 +59,95 @@ export class DMIFunctions {
                 }
             ]
         }))
+    }
+
+    static menu_onDriverIdClicked() {
+        DMIFunctions.askDriverId(console.log, console.log, false)
+    }
+
+    static askDriverId(onFinished: (values: DataEntryResult) => void, onCancel: () => void, initialSetup: boolean, current?: string) {
+        let btns: DataEntryAdditionalButton[] | undefined;
+        if(initialSetup) {
+            btns = [
+                {
+                    text: "TRN",
+                    symbol: null,
+                    type: "UP",
+                    action: console.log,
+                    left: 142,
+                    top: 400,
+                    width: 82,
+                    height: 50
+                },
+                {
+                    text: null,
+                    symbol: "SE_Entry",
+                    type: "UP",
+                    action: console.log,
+                    left: 224,
+                    top: 400,
+                    width: 82,
+                    height: 50
+                }
+            ]
+        }
+        OpenSubwindow(new DataEntryWindow({
+            title: "Driver ID",
+            confirmMessage: "Train data entry complete?",
+            fields: [
+                {
+                    name: "driverid",
+                    label: "N/A",
+                    type: "AlphaNumeric",
+                    preEnteredValue: current
+                }
+            ],
+            additionalButtons: btns,
+            halfLayoutIfApplicable: "EnabledWithoutLabel",
+            onFinished: onFinished,
+            onCancel: onCancel
+        }));
+    }
+
+    static menu_onTrainDataClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "Train data",
+            confirmMessage: "Train data entry complete?",
+            fields: [
+                {
+                    name: "length",
+                    label: "Length (m)",
+                    type: "Numeric"
+                },
+                {
+                    name: "decel",
+                    label: "Service brake (m/s^2)",
+                    type: "EnhancedNumeric"
+                },
+                {
+                    name: "vmax",
+                    label: "Maximum speed (km/h)",
+                    type: "Numeric"
+                },
+                {
+                    name: "vmax",
+                    label: "Maximum speed (km/h)",
+                    type: "Numeric"
+                },
+                {
+                    name: "vmax",
+                    label: "Maximum speed (km/h)",
+                    type: "Numeric"
+                },
+                {
+                    name: "vmax",
+                    label: "Maximum speed (km/h)",
+                    type: "Numeric"
+                }
+            ],
+            onFinished: console.log,
+            onCancel: console.log
+        }));
     }
 
     static onOverrideClicked() {

@@ -55,7 +55,7 @@ function usePressDetector(onPressed: null | (() => void), onReleased: null | (()
     }, [enabled, ref.current]);
 }
 
-function useEButtonBehaviour(action: null | ((repeat: number) => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
+export function useEButtonBehaviour(action: null | ((repeat: number) => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
     let [pressed, setPressed] = useState(false);
 
     let onMouseDown: any;
@@ -227,10 +227,10 @@ export interface FButtonProps {
     onClick?: (repeat: number) => void;
 }
 
-export const FButton = forwardRef(({ children, enabled, type, onClick, className, style, setPressed }:
-    FButtonProps & { className?: string, style?: CSSProperties, setPressed?: (b: boolean) => void }, ref: Ref<HTMLDivElement>) => {
+export const FButton = ({ children, enabled, type, onClick, className, style, setPressed }:
+    FButtonProps & { className?: string, style?: CSSProperties, setPressed?: (b: boolean) => void }) => {
 
-    let styleV = style ? style : {};
+    let styleV = style ? {...style} : {};
     if (enabled) {
         if (type === "DELAY") {
             styleV.cursor = "progress";
@@ -252,10 +252,10 @@ export const FButton = forwardRef(({ children, enabled, type, onClick, className
 
     setPressed && setPressed(pressed);
 
-    return <div className={className} style={styleV}>
+    return <div className={className} style={styleV} ref={buttonRef}>
         {children}
     </div>
-})
+}
 
 export const ESymbol = ({ symbol, className }: { symbol: string, className?: string } & { className?: string }) => {
     // Symbol not implemented yet
