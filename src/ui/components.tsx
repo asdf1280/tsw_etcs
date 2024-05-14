@@ -1,18 +1,6 @@
-import React, { CSSProperties, ReactNode, RefObject, createRef, forwardRef, useEffect, useState } from 'react';
+import React, { CSSProperties, ReactNode, Ref, RefObject, createRef, forwardRef, useEffect, useState } from 'react';
 import { E_COLORS } from './constants';
 import { Audio, Symbols } from './global';
-
-export type EButtonType = "UP" | "DOWN" | "DOWNREPEAT" | "DELAY";
-
-export interface EButtonProps {
-    text: ReactNode | null;
-    symbol: string | null;
-
-    enabled: boolean;
-    type: EButtonType;
-
-    onClick?: () => void;
-}
 
 function usePressDetector(onPressed: null | (() => void), onReleased: null | (() => void), onCanceled: null | (() => void), enabled: boolean, ref: React.RefObject<HTMLElement>) {
     useEffect(() => {
@@ -159,6 +147,18 @@ function useEButtonBehaviour(action: null | (() => void), type: EButtonType, ena
     return pressed;
 }
 
+export type EButtonType = "UP" | "DOWN" | "DOWNREPEAT" | "DELAY";
+
+export interface EButtonProps {
+    text: ReactNode | null;
+    symbol: string | null;
+
+    enabled: boolean;
+    type: EButtonType;
+
+    onClick?: () => void;
+}
+
 export const EButton = ({ text, symbol, enabled, type, className, onClick, style }: EButtonProps & { className?: string, style?: CSSProperties }) => {
     // Symbol not implemented yet
     let classNameV = "e-button" + (className ? " " + className : "");
@@ -214,6 +214,45 @@ export const EButton = ({ text, symbol, enabled, type, className, onClick, style
         </ShadowBorder>
     </ShadowBorder>
 }
+
+export interface FButtonProps {
+    children: ReactNode;
+
+    enabled: boolean;
+    type: EButtonType;
+
+    onClick?: () => void;
+}
+
+export const FButton = forwardRef(({ children, enabled, type, onClick, className, style, setPressed }:
+    FButtonProps & { className?: string, style?: CSSProperties, setPressed?: (b: boolean) => void }, ref: Ref<HTMLDivElement>) => {
+        
+    let styleV = style ? style : {};
+    if (enabled) {
+        if (type === "DELAY") {
+            styleV.cursor = "progress";
+        } else if (type === "DOWNREPEAT") {
+            styleV.cursor = "grab";
+        } else if (type === "DOWN") {
+            styleV.cursor = "pointer";
+        } else {
+            styleV.cursor = "pointer";
+        }
+    }
+
+    // button ref
+    let buttonRef = createRef<HTMLDivElement>();
+    let pressed = useEButtonBehaviour(() => {
+        Audio.buttonPressSound();
+        onClick && onClick();
+    }, type, enabled, buttonRef);
+
+    setPressed && setPressed(pressed);
+
+    return <div className={className} style={styleV}>
+        {children}
+    </div>
+})
 
 export const ESymbol = ({ symbol, className }: { symbol: string, className?: string } & { className?: string }) => {
     // Symbol not implemented yet
