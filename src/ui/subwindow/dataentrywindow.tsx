@@ -573,6 +573,7 @@ export class DataEntryWindow implements Subwindow {
                     if (value.currentFieldValue === null) value.currentFieldValue = "";
                     if (value.currentFieldValue.length > 0) value.currentFieldValue = value.currentFieldValue.substring(0, value.currentFieldValue.length - 1);
 
+                    clearTimeout(this.keyboardCursorTimeoutId as any);
                     this.lastKeyboardKeyPressed = "Del";
                     this.keyboardCursorTimeoutId = -1;
                     this.cursorPosition = value.currentFieldValue.length;
