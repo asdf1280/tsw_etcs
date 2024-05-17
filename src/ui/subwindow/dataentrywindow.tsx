@@ -859,8 +859,6 @@ export class DataEntryWindow implements Subwindow {
                             this.lastKeyboardKeyPressed = "";
                             this.cursorPosition++;
 
-                            console.log("I was triggered from " + ostr)
-
                             this.update("fields")
                         }, 2000) as any;
                     } else { // Not editable character
