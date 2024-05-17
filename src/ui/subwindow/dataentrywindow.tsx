@@ -168,7 +168,7 @@ export class DataEntryWindow implements Subwindow {
         if (typeof a === "function") {
             setTimeout(() => {
                 a();
-            }, 200);
+            }, 50);
         } else {
             // Trigger update to all targets
             for (let t of a) {
@@ -598,7 +598,7 @@ export class DataEntryWindow implements Subwindow {
 
         const onCurrentFieldClicked = () => {
             const isShowingTempValues = value.currentFieldValue !== null;
-            const isAnyChangeExpected = isShowingTempValues || value.accepted;
+            const isAnyChangeExpected = isShowingTempValues || !value.accepted;
             // If user edited the value after yellow ++++ was shown, it's not considered as an override.
             const overridingActive = value.complaint === "YellowPlus" && !isShowingTempValues;
 
@@ -952,7 +952,7 @@ export class DataEntryWindow implements Subwindow {
             keys.push(<this.key key={"pageChangerTo" + nextPage} x={2} y={3} text="SY:NA_More" action={() => {
                 setTimeout(() => {
                     setPage(nextPage);
-                }, 200);
+                }, 50);
             }} />)
         }
 
