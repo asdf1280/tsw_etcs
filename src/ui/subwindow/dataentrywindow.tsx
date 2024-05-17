@@ -557,6 +557,45 @@ export class DataEntryWindow implements Subwindow {
             content = value.value; // [Figure 97] '(Not) Selected IF / (not accepted) data value' state
         }
 
+        const onHalfWindowFinishClicked = () => {
+            let res: DataEntryResult = {};
+
+            let field = this.options.fields[0];
+            let value = this.values[0];
+
+            let parsed: any;
+            try {
+                parsed = DataEntryValueParseType(value.value!, field.type);
+            } catch {
+                return; // No way to feedback in half layout
+            }
+
+            res[field.name] = {
+                value: DataEntryValueParseType(parsed, field.type),
+                type: field.type
+            }
+
+            if (this.options.rulesToCheck) {
+                for (let rule of this.options.rulesToCheck) {
+                    let checkResult = rule(res);
+                    if (!checkResult?.accepted) {
+                        return; // No way to feedback in half layout
+                    }
+                }
+            }
+
+            if (field.rulesToCheck) {
+                for (let rule of field.rulesToCheck) {
+                    let checkResult = rule(parsed, field.type);
+                    if (!checkResult?.accepted) {
+                        return; // No way to feedback in half layout
+                    }
+                }
+            }
+            CloseSubwindow(this.uid);
+            this.options.onFinished(res);
+        }
+
         const onCurrentFieldClicked = () => {
             // If user edited the value(value.currentFieldValue !== null), it's not considered as an override.
             let isCurrentlyOverriding = value.complaint === "YellowPlus" && value.currentFieldValue === null;
@@ -629,6 +668,11 @@ export class DataEntryWindow implements Subwindow {
         }
 
         const onFieldClicked = () => {
+            if (this.useHalfLayout) {
+                onHalfWindowFinishClicked();
+                return;
+            }
+            
             if (i === this.fieldId) {
                 onCurrentFieldClicked();
             } else {
