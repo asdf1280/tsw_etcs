@@ -42,6 +42,7 @@ function DataEntryValueParseType(value: string, type: DataEntryValueType): any {
     if (type === "Numeric") {
         v = parseInt(value);
     } else if (type === "EnhancedNumeric") {
+        if(!value.match(/^[0-9]+(\.[0-9]+)?$/)) throw new Error("Invalid float");
         v = parseFloat(value);
     } else if (type === "AlphaNumeric") {
         v = String(value);
@@ -563,9 +564,13 @@ export class DataEntryWindow implements Subwindow {
             let field = this.options.fields[0];
             let value = this.values[0];
 
+            if (value.value === null) {
+                return; // No way to feedback in half layout
+            }
+
             let parsed: any;
             try {
-                parsed = DataEntryValueParseType(value.value!, field.type);
+                parsed = DataEntryValueParseType(value.value, field.type);
             } catch {
                 return; // No way to feedback in half layout
             }
@@ -625,7 +630,7 @@ export class DataEntryWindow implements Subwindow {
             // Technical resolution and type check
             let parsed: any;
             try {
-                parsed = DataEntryValueParseType(value.value!, field.type);
+                parsed = DataEntryValueParseType(value.value, field.type);
             } catch {
                 // red plus error (resolution error)
                 value.complaint = "RedPlus";

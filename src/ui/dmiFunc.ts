@@ -355,6 +355,18 @@ export class DMIFunctions {
                     label: "C (c = b)",
                     type: "Boolean",
                     preEnteredValue: false
+                },
+                {
+                    name: "d",
+                    label: "D (str <= 5, str <= a)",
+                    type: "AlphaNumeric",
+                    preEnteredValue: "example",
+                    rulesToCheck: [
+                        (a: string) => {
+                            if(a.length > 5) return {accepted: false, mandatory: false}
+                            return null;
+                        }
+                    ]
                 }
             ],
             onFinished: console.log,
@@ -381,10 +393,10 @@ export class DMIFunctions {
                     return null;
                 },
                 (res) => {
-                    if(res.a.value > 6) {
+                    if(res.d.value.length > res.a.value) {
                         return {
                             accepted: false,
-                            concernedFields: ["a"],
+                            concernedFields: ["a", "d"],
                             mandatory: true
                         }
                     }
