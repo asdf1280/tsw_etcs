@@ -597,26 +597,32 @@ export class DataEntryWindow implements Subwindow {
         }
 
         const onCurrentFieldClicked = () => {
-            // If user edited the value(value.currentFieldValue !== null), it's not considered as an override.
-            let isCurrentlyOverriding = value.complaint === "YellowPlus" && value.currentFieldValue === null;
+            const isShowingTempValues = value.currentFieldValue !== null;
+            const isAnyChangeExpected = isShowingTempValues || value.accepted;
+            // If user edited the value after yellow ++++ was shown, it's not considered as an override.
+            const overridingActive = value.complaint === "YellowPlus" && !isShowingTempValues;
 
             // Clear the displayed complaints when (1) a new data is entered or (2) the user is currently overriding the value.
-            if (value.currentFieldValue !== null || isCurrentlyOverriding) {
+            if (isShowingTempValues || overridingActive) {
                 this.resetComplaints();
                 this.lastDataCrossCheckOverrideIndex = -1;
             }
 
             // [Figure 97] Transition from 'Selected IF / value of pressed key(s)' state to '(Not) Selected IF / Data value' state
-            if (value.currentFieldValue !== null) {
+            if (isShowingTempValues) {
                 value.value = value.currentFieldValue;
                 value.currentFieldValue = null;
                 value.accepted = true;
             }
-            if (value.value === null) {
+
+            // Skip the data check when it isn't entered yet, or the driver's action isn't going to change anything.
+            if (value.value === null || !isAnyChangeExpected) {
                 this.fieldId = (i + 1) % this.fieldCount;
                 this.resetCursor();
                 return;
             }
+
+            // Technical resolution and type check
             let parsed: any;
             try {
                 parsed = DataEntryValueParseType(value.value!, field.type);
@@ -630,8 +636,10 @@ export class DataEntryWindow implements Subwindow {
             let fieldDef = this.options.fields[i];
             let rules = fieldDef.rulesToCheck;
 
-            if (rules && !isCurrentlyOverriding) {
+            if (rules && !overridingActive) {
                 // Separate the loop to make sure all mandatory checks are done first
+
+                // [10.3.4.2] Technical range checks
                 for (let rule of rules) {
                     let checkResult = rule(parsed, fieldDef.type);
                     if (checkResult === null) continue;
@@ -643,6 +651,8 @@ export class DataEntryWindow implements Subwindow {
                         return;
                     }
                 }
+
+                // [10.3.4.5] Operational range checks
                 for (let rule of rules) {
                     let checkResult = rule(parsed, fieldDef.type);
                     if (checkResult === null) continue;
@@ -671,7 +681,7 @@ export class DataEntryWindow implements Subwindow {
                 onHalfWindowFinishClicked();
                 return;
             }
-            
+
             if (i === this.fieldId) {
                 onCurrentFieldClicked();
             } else {
@@ -953,7 +963,7 @@ export class DataEntryWindow implements Subwindow {
         </div>
     }
 
-    key({ text, x, y, enabled, repeat, action, className }: { text: string | ReactElement, x: number, y: number, enabled?: boolean, repeat?: boolean, action?: () => void, className?: string }) {
+    key = ({ text, x, y, enabled, repeat, action, className }: { text: string | ReactElement, x: number, y: number, enabled?: boolean, repeat?: boolean, action?: () => void, className?: string }) => {
         let trySymbol = false;
 
         if (typeof text === "string" && text.startsWith("SY:")) {
