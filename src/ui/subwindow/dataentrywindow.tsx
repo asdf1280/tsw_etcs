@@ -78,6 +78,7 @@ interface DataEntryValue {
     accepted: boolean;
     value: string | null;
     currentFieldValue: string | null;
+    complaint: "YellowPlus" | "RedPlus" | "YellowQuestion" | "RedQuestion" | null;
 }
 
 export interface DataEntryField {
@@ -130,7 +131,8 @@ export class DataEntryWindow implements Subwindow {
             let obj: DataEntryValue = {
                 accepted: false,
                 value: currentValue ?? null,
-                currentFieldValue: null
+                currentFieldValue: null,
+                complaint: null
             }
 
             this.values.push(obj);
@@ -236,10 +238,19 @@ export class DataEntryWindow implements Subwindow {
      */
     usePartialUpdater(name: string, enabled: boolean = true) {
         const [, setUpdate] = useState<boolean>(false);
-        if (enabled)
-            this.updateFuncMap[name] = () => {
+
+        useEffect(() => {
+            if (!enabled) return;
+            let refFn = () => {
                 setUpdate((v) => !v);
+            };
+            this.updateFuncMap[name] = refFn;
+            return () => {
+                if (this.updateFuncMap[name] === refFn) {
+                    delete this.updateFuncMap[name];
+                }
             }
+        })
     }
 
     render = () => {
@@ -335,6 +346,7 @@ export class DataEntryWindow implements Subwindow {
     }
 
     EchoText = () => {
+        this.usePartialUpdater("echoText", true);
         let c: ReactNode[] = [];
 
         for (let i = 0; i < this.fieldCount; i++) {
@@ -665,7 +677,7 @@ export class DataEntryWindow implements Subwindow {
     dedicatedKeyboard = ({ fieldId }: { fieldId: number }) => {
         let field = this.options.fields[fieldId];
         let keys = [];
-        let lbs = field.type as DataEntryValueChoice[];
+        let lbs = field.type as (DataEntryValueChoice | null)[];
 
         let [page, setPage] = useState(0);
         let pages = 1;
@@ -680,16 +692,19 @@ export class DataEntryWindow implements Subwindow {
         }
 
         for (let i = 0; i < pageMax; i++) {
+            let choice = lbs[i + page * 11];
+            if (choice === null) continue; // Empty choice (for spacing)
+
             let onClick: () => void = () => { };
 
             onClick = () => {
                 let value = this.values[this.fieldId];
-                value.currentFieldValue = lbs[i + page * 11].name;
+                value.currentFieldValue = choice.name;
 
                 this.update("currentField")
             }
 
-            keys.push(<this.key key={i + page * 11} x={i % 3} y={Math.floor(i / 3)} text={lbs[i + page * 11].label} action={onClick} />)
+            keys.push(<this.key key={i + page * 11} x={i % 3} y={Math.floor(i / 3)} text={choice.label} action={onClick} />)
         }
 
         if (pages > 1) {
