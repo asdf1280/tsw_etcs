@@ -66,18 +66,27 @@ export type DataEntryResult = Record<string, { value: any, type: DataEntryValueT
 export type DataEntryCheckRule = (value: any, type: DataEntryValueType) => {
     accepted: boolean;
     mandatory?: boolean; // Default false
-};
+} | null;
 
 export type DataEntryCrossCheckRule = (values: DataEntryResult) => {
     accepted: boolean;
     concernedFields?: string[]; // Must be filled if accepted is false
     mandatory?: boolean; // Default false
-};
+} | null;
 
 interface DataEntryValue {
     accepted: boolean;
+    /**
+     * This refers to 'Data value' in Figure 97
+     */
     value: string | null;
+    /**
+     * This refers to 'Value corresponding to the pressed key(s)' in Figure 97
+     */
     currentFieldValue: string | null;
+    /**
+     * Read 10.3.4 Data Checks for more information.
+     */
     complaint: "YellowPlus" | "RedPlus" | "YellowQuestion" | "RedQuestion" | null;
 }
 
@@ -87,6 +96,9 @@ export interface DataEntryField {
     type: DataEntryValueType;
     preEnteredValue?: any;
 
+    /**
+     * When writting rules, make sure to write 'technical' rules before 'operational' rules. That's the specification. All technical checks must be done before operational checks.
+     */
     rulesToCheck?: DataEntryCheckRule[];
 }
 
@@ -110,6 +122,9 @@ export interface DataEntryWindowOptions {
     additionalButtons?: DataEntryAdditionalButton[];
     halfLayoutIfApplicable?: boolean;
 
+    /**
+     * When writting rules, make sure to write 'technical' rules before 'operational' rules. That's the specification. All technical checks must be done before operational checks.
+     */
     rulesToCheck?: DataEntryCrossCheckRule[];
     onFinished: (values: DataEntryResult) => void;
     onCancel: () => void;
@@ -165,13 +180,17 @@ export class DataEntryWindow implements Subwindow {
     get useHalfLayout() {
         return this.fieldCount === 1 && this.options.halfLayoutIfApplicable;
     }
-    get canConfirmNow() {
+    get confirmButtonState(): "Enabled" | "DelayOverride" | "Disabled" {
         // check no value is null
         for (let value of this.values) {
-            if (value.value === null) return false;
-            if (value.currentFieldValue !== null) return false;
+            if (value.value === null) return "Disabled";
+            if (value.currentFieldValue !== null) return "Disabled";
+            if (value.complaint !== null && value.complaint !== "YellowQuestion") return "Disabled";
         }
-        return true;
+        for (let value of this.values) {
+            if (value.complaint === "YellowQuestion") return "DelayOverride";
+        }
+        return "Enabled";
     }
     get fieldId() {
         return this._fieldId;
@@ -186,6 +205,9 @@ export class DataEntryWindow implements Subwindow {
             value.accepted = false;
             value.value = null;
             value.currentFieldValue = null;
+            if (value.complaint?.endsWith("Plus")) {
+                value.complaint = null;
+            }
         }
 
         this._fieldId = newFieldId;
@@ -200,9 +222,7 @@ export class DataEntryWindow implements Subwindow {
         this.fieldId = Math.min((value - 1) * 4, this.fieldCount - 1);
     }
 
-    get navLocked() {
-        return false; // Not implemented yet
-    }
+    /////////// Keyboard Cursor ///////////
 
     /**
      * This value is set by each keyboard component. Depending on the type of the field, it should be set to true or false.
@@ -230,6 +250,27 @@ export class DataEntryWindow implements Subwindow {
 
     onKeyboardKeyPressed?: (newData: string) => void;
     onKeyboardConfirmPressed?: (data: string) => void;
+
+    /////////// End of Keyboard Cursor ///////////
+
+    /////////// Data Check ///////////
+    get navLocked() {
+        let currentFieldValue = this.values[this.fieldId];
+        if (currentFieldValue.currentFieldValue === null && currentFieldValue.value !== null && currentFieldValue.complaint?.endsWith("Plus")) {
+            return true;
+        }
+        return false;
+    }
+
+    resetComplaints() {
+        for (let value of this.values) {
+            value.complaint = null;
+        }
+        this.update("echoText");
+    }
+
+    lastDataCrossCheckOverrideIndex: number = -1;
+    /////////// End of Data Check ///////////
 
     /**
      * Because we are abusing React, we need to manually specify which part of the component should be updated. Otherwise, the whole component will be re-rendered, resulting in event listeners being broken.
@@ -285,16 +326,6 @@ export class DataEntryWindow implements Subwindow {
             )
         }
 
-        // Rendering fields
-        // 10.3.5.14 says the Y should start from 50, but this is obviously an error and I've submitted a ticket to ERA.
-        {
-            let heightCount = 0;
-            if (useHalfLayout) heightCount++; // Space for the title
-            for (let i = 4 * (this.page - 1); i < Math.min(this.fieldCount, 4 * this.page); i++) {
-                renderedElements.push(<this.Field key={"field_" + i} index={i} y={heightCount++} />);
-            }
-        }
-
         if (!useHalfLayout) { // We can use hooks inside condition, because 'useHalfLayout' never changes.
             renderedElements.push(<this.ConfirmArea key={renderedElements.length} />);
         }
@@ -340,6 +371,7 @@ export class DataEntryWindow implements Subwindow {
             <EButton text="NA_CloseWindow" trySymbol enabled={true} type="UP" className="close" onClick={() => {
                 this.cancel(true);
             }} />
+            {<this.Fields />}
             {useHalfLayout ? null : <this.EchoText />}
             {renderedElements}
         </div>;
@@ -370,9 +402,31 @@ export class DataEntryWindow implements Subwindow {
                 valueStr = choice?.label ?? "";
             }
 
-            c.push(<div key={i} className="echotext-row">
+            let dataPartClassname = "right";
+            if (value.complaint === "RedPlus") {
+                dataPartClassname += " red";
+                valueStr = "++++";
+            } else if (value.complaint === "YellowPlus") {
+                dataPartClassname += " yellow";
+                valueStr = "++++";
+            } else if (value.complaint === "RedQuestion") {
+                dataPartClassname += " red";
+                valueStr = "????";
+            } else if (value.complaint === "YellowQuestion") {
+                dataPartClassname += " yellow";
+                valueStr = "????";
+            }
+
+            let rowClassname = "echotext-row";
+            if (value.accepted) {
+                rowClassname += " accepted";
+            } else {
+                rowClassname += " not-accepted";
+            }
+
+            c.push(<div key={i} className={rowClassname}>
                 <div className="left">{field.label}</div>
-                <div className="right">{valueStr}</div>
+                <div className={dataPartClassname}>{valueStr}</div>
             </div>)
         }
 
@@ -382,7 +436,8 @@ export class DataEntryWindow implements Subwindow {
     }
 
     ConfirmArea = () => {
-        const confirmAllowed = this.canConfirmNow;
+        this.usePartialUpdater("confirmButton", true);
+        let state = this.confirmButtonState;
 
         const onConfirmClicked = () => {
             let res: DataEntryResult = {};
@@ -391,7 +446,7 @@ export class DataEntryWindow implements Subwindow {
                 let value = this.values[i];
 
                 if (value.value === null) {
-                    // Invalid data
+                    // Invalid data. This should never happen in normal circumstances, because the button should be disabled.
                     return;
                 }
 
@@ -401,20 +456,85 @@ export class DataEntryWindow implements Subwindow {
                 }
             }
 
-            this.options.onFinished(res);
+            // Data cross check
+            if (this.options.rulesToCheck) {
+                this.resetComplaints();
+                for (let i = 0; i < this.options.rulesToCheck.length; i++) {
+                    let rule = this.options.rulesToCheck[i];
+                    let checkResult = rule(res);
+                    if (checkResult === null) continue;
+                    let { accepted, concernedFields, mandatory } = checkResult;
+
+                    if (!accepted && mandatory && concernedFields) {
+                        // Find all fields that are concerned and set their complaint to RedQuestion
+                        for (let j = 0; j < this.options.fields.length; j++) {
+                            if (concernedFields.includes(this.options.fields[j].name)) {
+                                this.values[j].complaint = "RedQuestion";
+                            }
+                        }
+                        this.update("window");
+                        return;
+                    }
+                }
+
+                for (let i = 0; i < this.options.rulesToCheck.length; i++) {
+                    let rule = this.options.rulesToCheck[i];
+                    let checkResult = rule(res);
+                    if (checkResult === null) continue;
+                    let { accepted, concernedFields, mandatory } = checkResult;
+
+                    if (!accepted && !mandatory && concernedFields && this.lastDataCrossCheckOverrideIndex < i) {
+                        // Find all fields that are concerned and set their complaint to RedQuestion
+                        console.log(`Cross check failed. Concerned fields: ${concernedFields.join(", ")} Rule index: ${i}`)
+                        for (let j = 0; j < this.options.fields.length; j++) {
+                            if (concernedFields.includes(this.options.fields[j].name)) {
+                                this.values[j].complaint = "YellowQuestion";
+                            }
+                        }
+                        this.lastDataCrossCheckOverrideIndex = i;
+                        this.update("window");
+                        return;
+                    }
+                }
+            }
+
             CloseSubwindow(this.uid);
+            this.options.onFinished(res);
         }
 
-        return <FButton className="confirm-box" enabled={confirmAllowed} onClick={onConfirmClicked} type="UP">
+        let enabled = state === "Enabled" || state === "DelayOverride";
+        let type: EButtonType = state === "DelayOverride" ? "DELAY" : "UP";
+
+        // We need the key to force the rerender of button when type changes. Otherwise the new button type doesn't work properly.
+        return <FButton key={"b_" + type + "e" + enabled} className="confirm-box" enabled={enabled} onClick={onConfirmClicked} type={type}>
             <div className="label">
                 <span>{this.options.confirmMessage}</span>
             </div>
             <div className="filled" style={{
-                backgroundColor: confirmAllowed ? E_COLORS.mediumGrey : E_COLORS.darkGrey
+                backgroundColor: enabled ? E_COLORS.mediumGrey : E_COLORS.darkGrey
             }}>
                 <span>Yes</span>
             </div>
         </FButton>
+    }
+
+    Fields = () => {
+        this.usePartialUpdater("fields", true);
+
+        // Rendering fields
+        // 10.3.5.14 says the Y should start from 50, but this is obviously an error and I've submitted a ticket to ERA.
+        let heightCount = 0;
+        if (this.useHalfLayout) heightCount++; // Space for the title
+
+        let renderedElements: ReactNode[] = [];
+
+        for (let i = 4 * (this.page - 1); i < Math.min(this.fieldCount, 4 * this.page); i++) {
+            renderedElements.push(<this.Field key={"field_" + i} index={i} y={heightCount++} />);
+        }
+
+        return <>
+            {renderedElements}
+        </>
     }
 
     Field = ({ index: i, y }: { index: number, y: number }) => {
@@ -428,38 +548,92 @@ export class DataEntryWindow implements Subwindow {
             classNames += " accepted"
         }
 
-        this.usePartialUpdater("currentField", i == this.fieldId);
+        this.usePartialUpdater("fields", i == this.fieldId);
 
         let content: string | null;
-        if (value.currentFieldValue !== null) {
+        if (value.currentFieldValue !== null) { // [Figure 97] 'Selected IF / value of pressed key(s)' state
             content = value.currentFieldValue;
         } else {
-            content = value.value;
+            content = value.value; // [Figure 97] '(Not) Selected IF / (not accepted) data value' state
         }
 
-        const onFieldClicked = () => {
-            let targetFieldId = i;
-            if (i === this.fieldId) {
-                value.accepted = true;
-                if (value.currentFieldValue !== null) { // Change has been made
-                    // Validate and save
-                    // Proceed to the next field
+        const onCurrentFieldClicked = () => {
+            // If user edited the value(value.currentFieldValue !== null), it's not considered as an override.
+            let isCurrentlyOverriding = value.complaint === "YellowPlus" && value.currentFieldValue === null;
+            if (isCurrentlyOverriding) alert("You are currently overriding the value. Please confirm the value first.")
 
-                    let valid = true;
-                    if (valid) {
-                        value.value = value.currentFieldValue;
-                        value.currentFieldValue = null;
-                    } else {
-                        value.accepted = false;
+            // Clear the displayed complaints when (1) a new data is entered or (2) the user is currently overriding the value.
+            if (value.currentFieldValue !== null || isCurrentlyOverriding) {
+                this.resetComplaints();
+                this.lastDataCrossCheckOverrideIndex = -1;
+            }
+
+            // [Figure 97] Transition from 'Selected IF / value of pressed key(s)' state to '(Not) Selected IF / Data value' state
+            if (value.currentFieldValue !== null) {
+                value.value = value.currentFieldValue;
+                value.currentFieldValue = null;
+                value.accepted = true;
+            }
+            if (value.value === null) {
+                this.fieldId = (i + 1) % this.fieldCount;
+                this.resetCursor();
+                return;
+            }
+            let parsed: any;
+            try {
+                parsed = DataEntryValueParseType(value.value!, field.type);
+            } catch {
+                // red plus error (resolution error)
+                value.complaint = "RedPlus";
+                this.update("window");
+                return;
+            }
+
+            let fieldDef = this.options.fields[i];
+            let rules = fieldDef.rulesToCheck;
+
+            if (rules && !isCurrentlyOverriding) {
+                // Separate the loop to make sure all mandatory checks are done first
+                for (let rule of rules) {
+                    let checkResult = rule(parsed, fieldDef.type);
+                    if (checkResult === null) continue;
+                    let { accepted, mandatory } = checkResult;
+
+                    if (!accepted && mandatory) {
+                        value.complaint = "RedPlus"
+                        this.update("window");
                         return;
                     }
                 }
+                for (let rule of rules) {
+                    let checkResult = rule(parsed, fieldDef.type);
+                    if (checkResult === null) continue;
+                    let { accepted, mandatory } = checkResult;
 
-                targetFieldId = (i + 1) % this.fieldCount;
+                    if (!accepted && !mandatory) {
+                        value.complaint = "YellowPlus"
+                        this.update("window");
+                        return;
+                    }
+                }
             }
-            this.fieldId = targetFieldId;
 
+            value.accepted = true;
+            this.fieldId = (i + 1) % this.fieldCount;
             this.resetCursor();
+        }
+
+        const onOtherFieldClicked = () => {
+            this.fieldId = i;
+            this.resetCursor();
+        }
+
+        const onFieldClicked = () => {
+            if (i === this.fieldId) {
+                onCurrentFieldClicked();
+            } else {
+                onOtherFieldClicked();
+            }
         }
 
         useEffect(() => {
@@ -508,7 +682,15 @@ export class DataEntryWindow implements Subwindow {
             chs = [];
         }
 
-        return <FButton onClick={onFieldClicked} type="DOWN" enabled={true} className={classNames} style={{ top: window.cell * 50 * y }
+        let enabled = true;
+        if (value.complaint === "RedPlus" && value.currentFieldValue === null) enabled = false;
+        if (i !== this.fieldId && this.navLocked) enabled = false;
+
+        let enterButtonType: EButtonType = "UP";
+        if (value.complaint === "YellowPlus" && value.currentFieldValue === null) enterButtonType = "DELAY";
+
+        // We need the key to force the rerender of button when type changes. Otherwise the new button type doesn't work properly.
+        return <FButton key={"a_" + i + "_" + enterButtonType + "e" + enabled} onClick={onFieldClicked} type={enterButtonType} enabled={enabled} className={classNames} style={{ top: window.cell * 50 * y }
         }>
             {field.label === null ? null : <div className="label"><span>{field.label}</span></div>}
             < div className="data" >
@@ -538,13 +720,15 @@ export class DataEntryWindow implements Subwindow {
                 onClick = () => {
                     let value = this.values[this.fieldId];
                     if (value.currentFieldValue === null) value.currentFieldValue = "";
-                    if (value.currentFieldValue.length > 0) value.currentFieldValue = value.currentFieldValue.substring(0, value.currentFieldValue.length - 1);
+                    if (value.currentFieldValue.length > 0) {
+                        value.currentFieldValue = value.currentFieldValue.substring(0, value.currentFieldValue.length - 1);
+                    }
 
                     this.lastKeyboardKeyPressed = "Del";
                     this.keyboardCursorTimeoutId = -1;
                     this.cursorPosition = value.currentFieldValue.length;
 
-                    this.update("currentField")
+                    this.update("fields")
                 }
             } else {
                 onClick = () => {
@@ -556,7 +740,7 @@ export class DataEntryWindow implements Subwindow {
                     this.keyboardCursorTimeoutId = -1;
                     this.cursorPosition = value.currentFieldValue.length;
 
-                    this.update("currentField")
+                    this.update("fields")
                 }
             }
 
@@ -583,14 +767,16 @@ export class DataEntryWindow implements Subwindow {
                 onClick = () => {
                     let value = this.values[this.fieldId];
                     if (value.currentFieldValue === null) value.currentFieldValue = "";
-                    if (value.currentFieldValue.length > 0) value.currentFieldValue = value.currentFieldValue.substring(0, value.currentFieldValue.length - 1);
+                    if (value.currentFieldValue.length > 0) {
+                        value.currentFieldValue = value.currentFieldValue.substring(0, value.currentFieldValue.length - 1);
+                    }
 
                     clearTimeout(this.keyboardCursorTimeoutId as any);
                     this.lastKeyboardKeyPressed = "Del";
                     this.keyboardCursorTimeoutId = -1;
                     this.cursorPosition = value.currentFieldValue.length;
 
-                    this.update("currentField")
+                    this.update("fields")
                 }
             } else {
                 onClick = () => {
@@ -617,7 +803,7 @@ export class DataEntryWindow implements Subwindow {
 
                             console.log("I was triggered from " + ostr)
 
-                            this.update("currentField")
+                            this.update("fields")
                         }, 2000) as any;
                     } else { // Not editable character
                         clearTimeout(this.keyboardCursorTimeoutId as any);
@@ -628,7 +814,7 @@ export class DataEntryWindow implements Subwindow {
                         this.cursorPosition = value.currentFieldValue.length;
                     }
 
-                    this.update("currentField")
+                    this.update("fields")
                 }
             }
 
@@ -661,7 +847,7 @@ export class DataEntryWindow implements Subwindow {
                     value.currentFieldValue = "1";
                 }
 
-                this.update("currentField")
+                this.update("fields")
             }
 
             keys.push(<this.key key={i} x={i % 3} y={2} text={lbs[i]} action={onClick} />)
@@ -701,7 +887,7 @@ export class DataEntryWindow implements Subwindow {
                 let value = this.values[this.fieldId];
                 value.currentFieldValue = choice.name;
 
-                this.update("currentField")
+                this.update("fields")
             }
 
             keys.push(<this.key key={i + page * 11} x={i % 3} y={Math.floor(i / 3)} text={choice.label} action={onClick} />)

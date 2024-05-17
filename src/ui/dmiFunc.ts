@@ -4,7 +4,7 @@ import { DataEntryAdditionalButton, DataEntryResult, DataEntryWindow } from "./s
 
 export class DMIFunctions {
     static init() {
-        
+
     }
 
     static onMenuClicked() {
@@ -67,7 +67,7 @@ export class DMIFunctions {
 
     static askDriverId(onFinished: (values: DataEntryResult) => void, onCancel: () => void, initialSetup: boolean, current?: string) {
         let btns: DataEntryAdditionalButton[] | undefined;
-        if(initialSetup) {
+        if (initialSetup) {
             btns = [
                 {
                     text: "TRN",
@@ -303,6 +303,92 @@ export class DMIFunctions {
                 },
                 {
                     text: "Mission with one radio system",
+                }
+            ]
+        }))
+    }
+
+    static onSimClicked() {
+        OpenSubwindow(new MenuWindow({
+            title: "DMI Simulation Menu",
+            items: [
+                {
+                    text: "Test data input and check",
+                    action: DMIFunctions.sim_onTestDataInputClicked
+                }
+            ]
+        }))
+    }
+
+    static sim_onTestDataInputClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "Test data input",
+            confirmMessage: "Data entry complete?",
+            fields: [
+                {
+                    name: "a",
+                    label: "A (3-5, 1-7)",
+                    type: "Numeric",
+                    preEnteredValue: 4,
+                    rulesToCheck: [
+                        (a) => {
+                            if (a < 1 || a > 7) return {
+                                accepted: false,
+                                mandatory: true,
+                            }
+                            else if (a < 3 || a > 5) return {
+                                accepted: false,
+                                mandatory: false,
+                                message: "Value should be between 3 and 5"
+                            }
+                            return null;
+                        }
+                    ]
+                },
+                {
+                    name: "b",
+                    label: "B (a <= 4)",
+                    type: "Boolean"
+                },
+                {
+                    name: "c",
+                    label: "C (c = b)",
+                    type: "Boolean",
+                    preEnteredValue: false
+                }
+            ],
+            onFinished: console.log,
+            onCancel: console.log,
+            rulesToCheck: [
+                (res) => {
+                    if((res.a.value as number) <= 4 !== res.b.value as boolean) {
+                        return {
+                            accepted: false,
+                            concernedFields: ["a", "b"],
+                            mandatory: false
+                        }
+                    }
+                    return null;
+                },
+                (res) => {
+                    if(res.b.value !== res.c.value) {
+                        return {
+                            accepted: false,
+                            concernedFields: ["b", "c"],
+                            mandatory: false
+                        }
+                    }
+                    return null;
+                },
+                (res) => {
+                    if(res.a.value > 6) {
+                        return {
+                            accepted: false,
+                            concernedFields: ["a"],
+                            mandatory: true
+                        }
+                    }
+                    return null;
                 }
             ]
         }))

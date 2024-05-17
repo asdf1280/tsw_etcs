@@ -201,7 +201,7 @@ export const DMIWindow = () => {
             <DMIArrangement id="F6" x={0} y={250} w={60} h={50}> </DMIArrangement>
             <DMIArrangement id="F7" x={0} y={300} w={60} h={50}> </DMIArrangement>
             <DMIArrangement id="F8" x={0} y={350} w={60} h={50}> </DMIArrangement>
-            <DMIArrangement id="F9" x={0} y={400} w={60} h={50}> <EButton text={<>Sim</>} type="UP" enabled={true} className="full" /> </DMIArrangement>
+            <DMIArrangement id="F9" x={0} y={400} w={60} h={50}> <EButton text={<>Sim</>} type="UP" enabled={true} className="full" onClick={DMIFunctions.onSimClicked} /> </DMIArrangement>
         </DMIArrangement>
         <DMIArrangement id="G" x={334} y={315} w={246} h={150}>
             <DMIArrangement id="G1" x={0} y={0} w={49} h={50}> <LayerBorder /> </DMIArrangement>

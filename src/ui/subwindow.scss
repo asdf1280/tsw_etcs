@@ -43,7 +43,7 @@
         background-color: var(--e-black);
     }
 
-    >.field {
+    .field {
         height: calc(50 * var(--cell));
         width: calc(306 * var(--cell));
 
@@ -306,6 +306,13 @@
             flex-direction: row;
             align-items: stretch;
             justify-content: flex-start;
+
+            &.accepted {
+                color: var(--e-white);
+            }
+            &.not-accepted {
+                color: var(--e-grey);
+            }
         }
 
         .left {
@@ -322,6 +329,14 @@
             padding-right: calc(10 * var(--cell));
             width: calc(130 * var(--cell));
             text-align: left;
+        }
+
+        .red {
+            color: var(--e-red);
+        }
+
+        .yellow {
+            color: var(--e-yellow);
         }
     }
 }
