@@ -599,7 +599,6 @@ export class DataEntryWindow implements Subwindow {
         const onCurrentFieldClicked = () => {
             // If user edited the value(value.currentFieldValue !== null), it's not considered as an override.
             let isCurrentlyOverriding = value.complaint === "YellowPlus" && value.currentFieldValue === null;
-            if (isCurrentlyOverriding) alert("You are currently overriding the value. Please confirm the value first.")
 
             // Clear the displayed complaints when (1) a new data is entered or (2) the user is currently overriding the value.
             if (value.currentFieldValue !== null || isCurrentlyOverriding) {
