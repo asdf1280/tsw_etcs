@@ -29,7 +29,7 @@ const InitScreen = ({ setInitialized }: any) => {
 
             setTimeout(() => {
                 Audio.welcomeSound();
-            }, 10);
+            }, 100);
 
             DMIFunctions.init();
 
