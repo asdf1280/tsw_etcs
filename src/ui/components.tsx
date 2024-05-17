@@ -268,6 +268,8 @@ export const FButton = ({ children, enabled, type, onClick, className, style, se
 
     setPressed && setPressed(pressed);
 
+    if(pressed) styleV.cursor = "grabbing";
+
     return <div className={className} style={styleV} ref={buttonRef}>
         {children}
     </div>
