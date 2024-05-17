@@ -564,6 +564,8 @@ export class DataEntryWindow implements Subwindow {
             let field = this.options.fields[0];
             let value = this.values[0];
 
+            value.value = value.currentFieldValue;
+
             if (value.value === null) {
                 return; // No way to feedback in half layout
             }
