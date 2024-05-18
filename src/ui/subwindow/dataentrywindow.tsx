@@ -1,6 +1,6 @@
-import React, { ReactElement, ReactNode, createRef, useEffect, useState } from "react";
+import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import { CloseSubwindow, Subwindow } from "../dmi"
-import { EButton, EButtonType, FButton, useEButtonBehaviour } from "../components";
+import { EButton, EButtonType, FButton } from "../components";
 import { E_COLORS } from "../constants";
 
 function isNumeric(str: string) {
@@ -42,7 +42,7 @@ function DataEntryValueParseType(value: string, type: DataEntryValueType): any {
     if (type === "Numeric") {
         v = parseInt(value);
     } else if (type === "EnhancedNumeric") {
-        if(!value.match(/^[0-9]+(\.[0-9]+)?$/)) throw new Error("Invalid float");
+        if (!value.match(/^[0-9]+(\.[0-9]+)?$/)) throw new Error("Invalid float");
         v = parseFloat(value);
     } else if (type === "AlphaNumeric") {
         v = String(value);
@@ -437,7 +437,6 @@ export class DataEntryWindow implements Subwindow {
     }
 
     ConfirmArea = () => {
-        this.usePartialUpdater("confirmButton", true);
         let state = this.confirmButtonState;
 
         const onConfirmClicked = () => {
@@ -750,7 +749,7 @@ export class DataEntryWindow implements Subwindow {
         if (value.complaint === "YellowPlus" && value.currentFieldValue === null) enterButtonType = "DELAY";
 
         // We need the key to force the rerender of button when type changes. Otherwise the new button type doesn't work properly.
-        return <FButton key={"a_" + i + "_" + enterButtonType + "e" + enabled} onClick={onFieldClicked} type={enterButtonType} enabled={enabled} className={classNames} style={{ top: window.cell * 50 * y }
+        return <FButton onClick={onFieldClicked} type={enterButtonType} enabled={enabled} className={classNames} style={{ top: window.cell * 50 * y }
         }>
             {field.label === null ? null : <div className="label"><span>{field.label}</span></div>}
             < div className="data" >

@@ -1,167 +1,188 @@
-import React, { CSSProperties, ReactNode, Ref, RefObject, act, createRef, forwardRef, useEffect, useState } from 'react';
+import React, { CSSProperties, ReactNode, Ref, RefObject, act, createRef, forwardRef, useEffect, useRef, useState } from 'react';
 import { E_COLORS } from './constants';
 import { Audio, Symbols } from './global';
 
-function usePressDetector(onPressed: null | (() => void), onReleased: null | (() => void), onCanceled: null | (() => void), enabled: boolean, ref: React.RefObject<HTMLElement>) {
-    useEffect(() => {
-        if (!ref.current) return;
-        if (!enabled) return;
+interface PressDetectorEvents {
+    onPressed: null | (() => void);
+    onReleased: null | (() => void);
+    onCanceled: null | (() => void);
+}
 
-        let e = ref.current;
+function useNewPressDetector(target: RefObject<HTMLElement>): PressDetectorEvents {
+    let eventRef = useRef<PressDetectorEvents>({ onPressed: null, onReleased: null, onCanceled: null });
+    const events = eventRef.current;
+
+    useEffect(() => {
+        if (!target.current) return;
+        let element = target.current;
 
         const globalMouseDown = () => {
-            onPressed && onPressed();
+            element.addEventListener('mouseleave', globalMouseLeave);
+            element.addEventListener('mouseup', globalMouseUp);
 
-            e.addEventListener('mouseleave', globalMouseLeave);
-            e.addEventListener('mouseup', globalMouseUp);
+            events.onPressed && events.onPressed();
         }
         const globalMouseLeave = () => {
-            onCanceled && onCanceled();
+            element.removeEventListener('mouseup', globalMouseUp);
+            element.removeEventListener('mouseleave', globalMouseLeave);
 
-            e.removeEventListener('mouseup', globalMouseUp);
-            e.removeEventListener('mouseleave', globalMouseLeave);
+            events.onCanceled && events.onCanceled();
         }
         const globalMouseUp = () => {
-            onReleased && onReleased();
-
-            e.removeEventListener('mouseup', globalMouseUp);
-            e.removeEventListener('mouseleave', globalMouseLeave);
+            element.removeEventListener('mouseup', globalMouseUp);
+            element.removeEventListener('mouseleave', globalMouseLeave);
+            
+            events.onReleased && events.onReleased();
         }
 
         const globalTouchStart = () => {
-            onPressed && onPressed();
+            element.addEventListener('touchmove', globalTouchMove);
+            element.addEventListener('touchend', globalTouchEnd);
+            element.removeEventListener('mousedown', globalMouseDown); // Prevent mouse event when touch event is active (to prevent double click)
 
-            e.addEventListener('touchmove', globalTouchMove);
-            e.addEventListener('touchend', globalTouchEnd);
-            e.removeEventListener('mousedown', globalMouseDown); // Prevent mouse event when touch event is active (to prevent double click)
+            events.onPressed && events.onPressed();
         }
 
         const globalTouchEnd = () => {
-            onReleased && onReleased();
+            element.removeEventListener('touchmove', globalTouchMove);
+            element.removeEventListener('touchend', globalTouchEnd);
 
-            e.removeEventListener('touchmove', globalTouchMove);
-            e.removeEventListener('touchend', globalTouchEnd);
+            events.onReleased && events.onReleased();
         }
         const globalTouchMove = (event: TouchEvent) => {
             event.preventDefault();
             var touch = event.touches[0];
             let elementFromPoint = document.elementFromPoint(touch.pageX, touch.pageY)!;
 
-            if (!e.outerHTML.includes(elementFromPoint.outerHTML)) { // Not a safe method, but it works
-                onCanceled && onCanceled();
+            if (!element.outerHTML.includes(elementFromPoint.outerHTML)) { // Not a safe method, but it works
+                element.removeEventListener('touchend', globalTouchEnd);
+                element.removeEventListener('touchmove', globalTouchMove);
 
-                e.removeEventListener('touchend', globalTouchEnd);
-                e.removeEventListener('touchmove', globalTouchMove);
+                events.onCanceled && events.onCanceled();
             }
-            
+
         }
 
-        e.addEventListener('mousedown', globalMouseDown);
-        e.addEventListener('touchstart', globalTouchStart);
+        element.addEventListener('mousedown', globalMouseDown);
+        element.addEventListener('touchstart', globalTouchStart);
 
         return () => {
-            e.removeEventListener('mousedown', globalMouseDown);
-            e.removeEventListener('touchstart', globalTouchStart);
-            e.removeEventListener('mouseleave', globalMouseLeave);
-            e.removeEventListener('mouseup', globalMouseUp);
-            e.removeEventListener('touchend', globalTouchEnd);
-            e.removeEventListener('touchmove', globalTouchMove);
+            element.removeEventListener('mousedown', globalMouseDown);
+            element.removeEventListener('touchstart', globalTouchStart);
+            element.removeEventListener('mouseleave', globalMouseLeave);
+            element.removeEventListener('mouseup', globalMouseUp);
+            element.removeEventListener('touchend', globalTouchEnd);
+            element.removeEventListener('touchmove', globalTouchMove);
         }
-    }, [enabled]);
+    }, []);
+
+    return events;
 }
 
 export function useEButtonBehaviour(action: null | ((repeat: number) => void), type: EButtonType, enabled: boolean, ref: RefObject<HTMLElement>): boolean {
     let [pressed, setPressed] = useState(false);
+    let events = useNewPressDetector(ref);
 
-    let onMouseDown: any;
-    let onMouseUp: any;
-    let onMouseLeave: any;
-    if (type === "UP") {
-        onMouseDown = () => {
-            setPressed(true);
-        };
-        onMouseUp = () => {
+    let reallyPressed = useRef(false);
+    let currentAction = useRef<null | ((repeat: number) => void)>(null);
+    currentAction.current = action;
+
+    useEffect(() => {
+        if(!enabled) {
+            events.onPressed = null;
+            events.onReleased = null;
+            events.onCanceled = null;
             setPressed(false);
-            action && action(0);
-        };
-        onMouseLeave = () => {
-            setPressed(false);
-        };
-    } else if (type === "DOWN" || type === "DOWNREPEAT") {
-        let timeout: any;
-        let virtualPressed = false;
-        onMouseDown = () => {
-            virtualPressed = true;
-            setPressed(true);
-            setTimeout(() => {
+            return;
+        }
+        if (type === "UP") {
+            events.onPressed = () => {
+                setPressed(true);
+            };
+            events.onReleased = () => {
                 setPressed(false);
-            }, 100);
-            action && action(0);
+                currentAction.current && currentAction.current(0);
+            };
+            events.onCanceled = () => {
+                setPressed(false);
+            };
+        } else if (type === "DOWN" || type === "DOWNREPEAT") {
+            let timeout: any;
+            events.onPressed = () => {
+                reallyPressed.current = true;
+                setPressed(true);
+                setTimeout(() => {
+                    setPressed(false);
+                }, 100);
+                currentAction.current && currentAction.current(0);
 
-            if (type === "DOWNREPEAT")
-                timeout = setTimeout(() => {
-                    let repeats = 1;
-                    let interval = setInterval(() => {
-                        if (virtualPressed) {
+                if (type === "DOWNREPEAT")
+                    timeout = setTimeout(() => {
+                        let repeats = 1;
+                        let interval = setInterval(() => {
+                            if (reallyPressed.current) {
+                                setPressed(true);
+                                setTimeout(() => {
+                                    setPressed(false);
+                                }, 100);
+
+                                currentAction.current && currentAction.current(repeats++);
+                            } else {
+                                clearInterval(interval);
+                            }
+                        }, 300);
+                    }, 1500);
+            };
+            events.onReleased = () => {
+                reallyPressed.current = false;
+                clearTimeout(timeout);
+            };
+            events.onCanceled = () => {
+                reallyPressed.current = false;
+                clearTimeout(timeout);
+            };
+        } else if (type === "DELAY") {
+            let reallyPressed = { current: false }
+            let repeatCount = 0;
+            console.log("ddd")
+            events.onPressed = () => {
+                console.log("A", reallyPressed.current)
+                reallyPressed.current = true;
+                setPressed(true);
+
+                let interval = setInterval(() => {
+                    if (reallyPressed.current) {
+                        repeatCount++;
+                        setPressed(repeatCount % 2 === 0);
+
+                        if (repeatCount === 8) {
                             setPressed(true);
-                            setTimeout(() => {
-                                setPressed(false);
-                            }, 100);
 
-                            action && action(repeats++);
-                        } else {
                             clearInterval(interval);
                         }
-                    }, 300);
-                }, 1500);
-        };
-        onMouseUp = () => {
-            virtualPressed = false;
-            clearTimeout(timeout);
-        };
-        onMouseLeave = () => {
-            virtualPressed = false;
-            clearTimeout(timeout);
-        };
-    } else if (type === "DELAY") {
-        let virtualPressed = false;
-        let repeatIndex = 0;
-        onMouseDown = () => {
-            virtualPressed = true;
-            setPressed(true);
-
-            let interval = setInterval(() => {
-                if (virtualPressed) {
-                    repeatIndex++;
-                    setPressed(repeatIndex % 2 === 0);
-
-                    if (repeatIndex === 8) {
-                        setPressed(true);
-
+                    } else {
                         clearInterval(interval);
                     }
-                } else {
-                    clearInterval(interval);
+                }, 250);
+            };
+            events.onReleased = () => {
+                console.log("B", reallyPressed.current)
+                reallyPressed.current = false;
+                setPressed(false);
+
+                if (repeatCount >= 8) {
+                    currentAction.current && currentAction.current(0);
                 }
-            }, 250);
-        };
-        onMouseUp = () => {
-            virtualPressed = false;
-            setPressed(false);
-
-            if (repeatIndex == 8) {
-                action && action(0);
-            }
-            repeatIndex = 0;
-        };
-        onMouseLeave = () => {
-            virtualPressed = false;
-            repeatIndex = 0;
-            setPressed(false);
-        };
-    }
-
-    usePressDetector(onMouseDown, onMouseUp, onMouseLeave, enabled, ref);
+                repeatCount = 0;
+            };
+            events.onCanceled = () => {
+                console.log("C", reallyPressed.current)
+                reallyPressed.current = false;
+                repeatCount = 0;
+                setPressed(false);
+            };
+        }
+    }, [enabled, type])
 
     return pressed;
 }
@@ -246,7 +267,7 @@ export interface FButtonProps {
 export const FButton = ({ children, enabled, type, onClick, className, style, setPressed }:
     FButtonProps & { className?: string, style?: CSSProperties, setPressed?: (b: boolean) => void }) => {
 
-    let styleV = style ? {...style} : {};
+    let styleV = style ? { ...style } : {};
     if (enabled) {
         if (type === "DELAY") {
             styleV.cursor = "progress";
@@ -260,15 +281,17 @@ export const FButton = ({ children, enabled, type, onClick, className, style, se
     }
 
     // button ref
-    let buttonRef = createRef<HTMLDivElement>();
+    let buttonRef = useRef<HTMLDivElement>(null);
     let pressed = useEButtonBehaviour((n) => {
         Audio.buttonPressSound();
         onClick && onClick(n);
     }, type, enabled, buttonRef);
 
-    setPressed && setPressed(pressed);
+    useEffect(() => {
+        setPressed && setPressed(pressed);
+    }, [pressed]);
 
-    if(pressed) styleV.cursor = "grabbing";
+    if (pressed) styleV.cursor = "grabbing";
 
     return <div className={className} style={styleV} ref={buttonRef}>
         {children}
