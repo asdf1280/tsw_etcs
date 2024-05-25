@@ -97,6 +97,7 @@ export function useEButtonBehaviour(action: null | ((repeat: number) => void), t
         }
         if (type === "UP") {
             events.onPressed = () => {
+                Audio.buttonPressSound();
                 setPressed(true);
             };
             events.onReleased = () => {
@@ -109,6 +110,8 @@ export function useEButtonBehaviour(action: null | ((repeat: number) => void), t
         } else if (type === "DOWN" || type === "DOWNREPEAT") {
             let timeout: any;
             events.onPressed = () => {
+                Audio.buttonPressSound();
+
                 reallyPressed.current = true;
                 setPressed(true);
                 setTimeout(() => {
@@ -121,6 +124,8 @@ export function useEButtonBehaviour(action: null | ((repeat: number) => void), t
                         let repeats = 1;
                         let interval = setInterval(() => {
                             if (reallyPressed.current) {
+                                Audio.buttonPressSound();
+
                                 setPressed(true);
                                 setTimeout(() => {
                                     setPressed(false);
@@ -146,7 +151,7 @@ export function useEButtonBehaviour(action: null | ((repeat: number) => void), t
             let repeatCount = 0;
             console.log("ddd")
             events.onPressed = () => {
-                console.log("A", reallyPressed.current)
+                Audio.buttonPressSound();
                 reallyPressed.current = true;
                 setPressed(true);
 
@@ -220,7 +225,6 @@ export const EButton = ({ text, trySymbol, enabled, type, className, onClick, st
     // button ref
     let buttonRef = createRef<HTMLDivElement>();
     let pressed = useEButtonBehaviour((n) => {
-        Audio.buttonPressSound();
         onClick && onClick(n);
     }, type, enabled, buttonRef);
 
