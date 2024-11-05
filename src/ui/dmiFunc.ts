@@ -27,9 +27,11 @@ export class DMIFunctions {
                 },
                 {
                     text: "Level",
+                    action: DMIFunctions.menu_levelClicked
                 },
                 {
                     text: "Train running number",
+                    action: DMIFunctions.menu_trainnumberClicked
                 },
                 {
                     text: "Shunting",
@@ -216,6 +218,56 @@ export class DMIFunctions {
             onCancel: console.log
         }));
     }
+
+    static menu_levelClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "Level",
+            confirmMessage: "Level entry complete?",
+            fields: [
+                {
+                    name: "level",
+                    label: "Level",
+                    type: [
+                        {
+                            label: "Level 1",
+                            name: "level1"
+                        },
+                        {
+                            label: "Level 2",
+                            name: "level2"
+                        },
+                        {
+                            label: "Level 0",
+                            name: "level0"
+                        }
+                    ]
+                },
+                
+            ],
+            halfLayoutIfApplicable: true,
+            onFinished: console.log,
+            onCancel: console.log
+        }));
+    }
+
+    static menu_trainnumberClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "Train running number",
+            confirmMessage: "Train data entry complete?",
+            fields: [
+                {
+                    name: "trainrunningnumber",
+                    label: null,
+                    type: "Numeric",
+                }
+            ],
+            halfLayoutIfApplicable: true,
+            onFinished: console.log,
+            onCancel: console.log
+        }))
+    }
+
+
 
     static onOverrideClicked() {
         OpenSubwindow(new MenuWindow({
@@ -405,6 +457,11 @@ export class DMIFunctions {
             ]
         }))
     }
+
+    
+    
+                        
+
 
     static notImplementedMessage() {
         // This function isn't even implemented lol
