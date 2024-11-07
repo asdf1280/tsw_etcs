@@ -226,7 +226,7 @@ export class DMIFunctions {
             fields: [
                 {
                     name: "level",
-                    label: "Level",
+                    label: null,
                     type: [
                         {
                             label: "Level 1",
@@ -236,6 +236,7 @@ export class DMIFunctions {
                             label: "Level 2",
                             name: "level2"
                         },
+                    
                         {
                             label: "Level 0",
                             name: "level0"
@@ -346,17 +347,134 @@ export class DMIFunctions {
                 },
                 {
                     text: "Enter RBC data",
+                    action: DMIFunctions.radioData_RBCDataClicked
                 },
                 {
                     text: "Radio network type",
+                    action: DMIFunctions.radioData_networkTypeClicked
                 },
                 {
                     text: "GSM-R network ID",
+                    action: DMIFunctions.radioData_GSMRNetworkClicked
                 },
                 {
                     text: "Mission with one radio system",
+                    action: DMIFunctions.radioData_oneRadioSystemClicked
                 }
             ]
+        }))
+    }
+
+    static radioData_GSMRNetworkClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "GSM-R Network ID",
+            confirmMessage: "Is data entry complete?",
+            fields: [
+                {
+                    name: "GSM-R",
+                    label: "GSM-R",
+                    type: [
+                        {
+                            label: "GSMR-A",
+                            name: "GSMRA"
+                        },
+                        {
+                            label: "GSMR-B",
+                            name: "GSMRB"
+                        },
+                        {
+                            label: "Telecom X",
+                            name: "TELECOMX"
+                        }
+                    ],
+                    
+                },
+                
+            ],
+            halfLayoutIfApplicable: true,
+            onFinished: console.log,
+            onCancel: console.log
+        }))
+    }
+
+    static radioData_RBCDataClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "RBC data",
+            confirmMessage: "RBC data entry complete?",
+            fields: [
+                {
+                    name: "RBCID",
+                    label: "RBC ID",
+                    type: "Numeric"
+                },
+                {
+                    name: "RBCNUMBER",
+                    label: "RBC phone number",
+                    type: "Numeric"
+                }
+
+                
+            ],
+            onCancel: console.log,
+            onFinished: console.log
+        }))
+    }
+
+    static radioData_networkTypeClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "Radio network type",
+            confirmMessage: "Is data entry complete?",
+            fields: [
+                {
+                    name: "networktype",
+                label: null,
+                type: [
+                    {
+                        name: "FRMCS",
+                        label: "FRMCS"
+                    },
+                    {
+                        name: "FRMCS+GSMR",
+                        label: "FRMCS+GSM-R"
+                    },
+                    {
+                        label: "GSM-R",
+                        name: "GSMR"
+                    },
+                    
+                    
+                ]
+            }
+            ],
+            halfLayoutIfApplicable: true,
+            onCancel: console.log,
+            onFinished: console.log
+        }))
+    }
+
+    static radioData_oneRadioSystemClicked() {
+        OpenSubwindow(new DataEntryWindow({
+            title: "Mission with one radio system",
+            confirmMessage: "Is data entry complete?",
+            fields: [
+                {
+                    name: "oneRadioSystem",
+                    label: null,
+                    type: [
+                        {
+                            name: "no",
+                            label: "No"
+                        },
+                        {
+                            name: "yes",
+                            label: "Yes"
+                        }
+                    ]
+                }
+            ],
+            halfLayoutIfApplicable: true,
+            onCancel: console.log,
+            onFinished: console.log
         }))
     }
 
