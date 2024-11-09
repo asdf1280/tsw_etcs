@@ -236,7 +236,9 @@ export class DMIFunctions {
                             label: "Level 2",
                             name: "level2"
                         },
-                    
+                        {
+                            text: null, // Separator
+                        },
                         {
                             label: "Level 0",
                             name: "level0"
@@ -337,7 +339,7 @@ export class DMIFunctions {
 
     static onRadioDataClicked() {
         OpenSubwindow(new MenuWindow({
-            title: "Settings",
+            title: "Radio data",
             items: [
                 {
                     text: "Contact last RBC",
@@ -348,6 +350,9 @@ export class DMIFunctions {
                 {
                     text: "Enter RBC data",
                     action: DMIFunctions.radioData_RBCDataClicked
+                },
+                {
+                    text: null, // Separator
                 },
                 {
                     text: "Radio network type",
