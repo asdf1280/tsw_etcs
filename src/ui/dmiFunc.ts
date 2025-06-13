@@ -237,7 +237,8 @@ export class DMIFunctions {
                             name: "level2"
                         },
                         {
-                            text: null, // Separator
+                            label: "",
+                            name: "seperator" // Separator
                         },
                         {
                             label: "Level 0",
