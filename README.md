@@ -1,3 +1,7 @@
+# Disclaimer
+
+The current state of the project hadn't met anything near the general requirements of ETCS. Currently, it only presents the partial GUI and involves no actual working game connection. Contributions are highly appreciated and will shortly be reviewed.
+
 # TSW_ETCS
 The old version of TSWOCR ETCS DMI focused on providing stop assist, as well as autopilot. While some people could be more interested in automating the Train Sim World, there were clear limitations in providing full compatibility for notch-controlled trains. Therefore, I decided to create a new ETCS DMI software that focuses on implementing the ETCS standard.
 
